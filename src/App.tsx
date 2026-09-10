@@ -74,7 +74,11 @@ export default function App() {
   } = pipeline;
 
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const isFirstRender = useRef(true);
+  // Tracks the step the heading was last moved for. Comparing against the
+  // current step is safe under StrictMode, which invokes effects twice: a
+  // simple "first render" flag gets flipped by the first pass and then focuses
+  // on the second, putting a ring on the heading before anyone has clicked.
+  const focusedForStep = useRef(step);
 
   /**
    * Moves focus to the new stage heading and returns to the top of the page.
@@ -84,10 +88,8 @@ export default function App() {
    * nothing announcing that anything had changed.
    */
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
+    if (focusedForStep.current === step) return;
+    focusedForStep.current = step;
 
     headingRef.current?.focus();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -110,22 +112,23 @@ export default function App() {
       </p>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
-        <div className={step === 'upload' ? 'mb-8 max-w-2xl' : 'mb-6 max-w-2xl'}>
+        <div className={step === 'upload' ? 'mb-9 max-w-2xl' : 'mb-7 max-w-2xl'}>
           <h1
             ref={headingRef}
             tabIndex={-1}
-            className={
-              step === 'upload'
-                ? 'text-3xl font-semibold tracking-tight text-ink-900 outline-none sm:text-4xl'
-                : 'text-2xl font-semibold tracking-tight text-ink-900 outline-none'
-            }
+            className={`font-display text-ink-900 outline-none focus-visible:outline-none ${
+              step === 'upload' ? 'text-[2.75rem] sm:text-6xl' : 'text-4xl sm:text-[2.75rem]'
+            }`}
           >
             {heading.title}
           </h1>
-          <p className="mt-2 text-base leading-relaxed text-ink-600">{heading.blurb}</p>
+          <p className="mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-ink-600">
+            {heading.blurb}
+          </p>
           {step === 'upload' && (
-            <p className="mt-3 text-sm text-ink-500">
-              It all runs in your browser. No sign up, no upload, no server.
+            <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-xs text-ink-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-600" />
+              Runs entirely in your browser. No sign up, no upload, no server.
             </p>
           )}
         </div>

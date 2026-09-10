@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How RAG works, explained plainly | Chunkie by Peppi Labs</title>
+<meta name="description" content="A plain language guide to every idea behind retrieval augmented generation: chunking, embeddings, vectors, cosine similarity, vector databases and retrieval, plus how Chunkie itself is built." />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
+/>
+<style>
+  :root {
+    --brand-50:#f0f5ff; --brand-100:#dfe9ff; --brand-200:#c4d7fe; --brand-600:#0b5ed7; --brand-700:#0a4bad; --brand-800:#0d3f8c;
+    --ink-50:#faf9f8; --ink-100:#f3f2f0; --ink-150:#ecebe8; --ink-200:#e4e2de; --ink-300:#cfccc6;
+    --ink-400:#a29e97; --ink-500:#726e67; --ink-600:#55514b; --ink-700:#3d3a35; --ink-800:#262421; --ink-900:#141311;
+    --accent:#e8590c;
+    --sans: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+    --measure: 34rem;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--ink-50);
+    color: var(--ink-900);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+
+  a { color: var(--brand-700); text-underline-offset: 2px; }
+  a:hover { color: var(--brand-800); }
+  :focus-visible { outline: 2px solid var(--brand-600); outline-offset: 3px; border-radius: 4px; }
+
+  .display { font-weight: 600; letter-spacing: -.033em; line-height: 1.04; }
+  code, kbd { font-family: var(--mono); font-size: .875em; }
+  code {
+    background: var(--ink-100); border: 1px solid var(--ink-200);
+    border-radius: 5px; padding: .1em .35em; color: var(--ink-800);
+  }
+
+  /* ---------- Skip link ---------- */
+  .skip {
+    position: absolute; left: -9999px; top: 0; z-index: 100;
+    background: #fff; padding: .75rem 1rem; border: 1px solid var(--ink-200); border-radius: 8px;
+  }
+  .skip:focus { left: 1rem; top: 1rem; }
+
+  /* ---------- Masthead ---------- */
+  .masthead { border-bottom: 1px solid var(--ink-200); background: #fff; }
+  .masthead-inner {
+    max-width: 76rem; margin: 0 auto; padding: 0 1.5rem;
+    height: 60px; display: flex; align-items: center; gap: .75rem;
+  }
+  .wordmark { display: flex; align-items: center; gap: .625rem; font-weight: 600; letter-spacing: -.01em; text-decoration: none; color: var(--ink-900); }
+  .wordmark span { color: var(--brand-600); }
+  .masthead .sep { color: var(--ink-300); }
+  .masthead .where { color: var(--ink-500); font-size: .875rem; }
+  .masthead .right { margin-left: auto; display: flex; gap: 1.25rem; font-size: .875rem; }
+  .masthead .right a { color: var(--ink-600); text-decoration: none; }
+  .masthead .right a:hover { color: var(--ink-900); }
+
+  /* ---------- Hero ---------- */
+  .hero { border-bottom: 1px solid var(--ink-200); background: #fff; }
+  .hero-inner { max-width: 76rem; margin: 0 auto; padding: 4.5rem 1.5rem 3.5rem; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: .5rem;
+    font-size: .75rem; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-500); margin: 0 0 1.25rem;
+  }
+  .eyebrow::before { content:''; width: 1.5rem; height: 1px; background: var(--ink-300); }
+  h1.display { font-size: clamp(2.75rem, 7vw, 4.75rem); margin: 0; max-width: 20ch; }
+  .standfirst {
+    margin: 1.5rem 0 0; max-width: 42rem;
+    font-size: 1.125rem; line-height: 1.6; color: var(--ink-600);
+  }
+  .hero-meta { margin-top: 2rem; display: flex; flex-wrap: wrap; gap: .5rem; }
+  .pill {
+    font-size: .75rem; color: var(--ink-600);
+    border: 1px solid var(--ink-200); border-radius: 999px; padding: .35rem .75rem; background: var(--ink-50);
+  }
+
+  /* ---------- Layout ---------- */
+  .shell { max-width: 76rem; margin: 0 auto; padding: 0 1.5rem; display: grid; gap: 3.5rem; }
+  @media (min-width: 64rem) { .shell { grid-template-columns: 15rem minmax(0,1fr); gap: 4rem; } }
+
+  /* ---------- Index ---------- */
+  .index { padding: 3rem 0 1rem; }
+  @media (min-width: 64rem) {
+    .index { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 3rem 0; }
+  }
+  .index h2 {
+    font-size: .6875rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-400); margin: 0 0 1rem; font-weight: 600;
+  }
+  .index ol { list-style: none; margin: 0; padding: 0; counter-reset: idx; }
+  .index > ol > li { counter-increment: idx; }
+  .index > ol > li > a::before {
+    content: counter(idx, decimal-leading-zero);
+    font-family: var(--mono); font-size: .6875rem; color: var(--ink-400);
+    margin-right: .625rem; font-variant-numeric: tabular-nums;
+  }
+  .index a {
+    display: block; padding: .3rem 0; text-decoration: none;
+    color: var(--ink-600); font-size: .8125rem; line-height: 1.45;
+    border-left: 2px solid transparent; transition: color .15s;
+  }
+  .index a:hover { color: var(--ink-900); }
+  .index a.here { color: var(--brand-700); font-weight: 500; }
+  .index ol ol { margin: 0 0 .5rem 1.5rem; }
+  .index ol ol a { font-size: .78125rem; color: var(--ink-500); padding: .2rem 0; }
+
+  /* ---------- Article ---------- */
+  .doc { padding: 3rem 0 5rem; min-width: 0; }
+  section { scroll-margin-top: 1.5rem; }
+  section + section { margin-top: 4.5rem; }
+  .sec-no {
+    font-family: var(--mono); font-size: .75rem; color: var(--brand-600);
+    letter-spacing: .06em; display: block; margin-bottom: .625rem;
+  }
+  h2.display { font-size: clamp(1.875rem, 3.4vw, 2.5rem); margin: 0 0 1rem; }
+  h3 {
+    font-size: 1rem; font-weight: 600; letter-spacing: -.01em;
+    margin: 2.5rem 0 .625rem; color: var(--ink-900);
+  }
+  p { margin: 0 0 1.125rem; max-width: var(--measure); color: var(--ink-700); }
+  .lead { font-size: 1.0625rem; color: var(--ink-600); }
+  ul, ol.body { max-width: var(--measure); padding-left: 1.15rem; margin: 0 0 1.125rem; color: var(--ink-700); }
+  li { margin-bottom: .5rem; }
+  strong { font-weight: 600; color: var(--ink-900); }
+
+  /* ---------- Devices ---------- */
+  .note {
+    max-width: var(--measure); margin: 1.75rem 0;
+    border-left: 2px solid var(--brand-200); padding: .25rem 0 .25rem 1.25rem;
+  }
+  .note p { margin: 0; font-size: .9375rem; color: var(--ink-600); }
+  .note .label {
+    display: block; font-size: .6875rem; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--brand-700); font-weight: 600; margin-bottom: .35rem;
+  }
+
+  figure { margin: 2rem 0; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption { margin-top: .75rem; font-size: .8125rem; color: var(--ink-500); max-width: var(--measure); }
+
+  .card {
+    background: #fff; border: 1px solid var(--ink-200); border-radius: 14px;
+    padding: 1.25rem 1.375rem; margin: 1.75rem 0;
+    box-shadow: 0 1px 2px rgba(20,19,17,.04), 0 8px 24px -12px rgba(20,19,17,.10);
+  }
+  .card p:last-child { margin-bottom: 0; }
+
+  .grid2 { display: grid; gap: 1rem; margin: 1.75rem 0; }
+  @media (min-width: 40rem) { .grid2 { grid-template-columns: 1fr 1fr; } }
+  .grid2 .card { margin: 0; }
+  .grid2 h4 { margin: 0 0 .5rem; font-size: .875rem; font-weight: 600; }
+  .grid2 p { font-size: .875rem; margin: 0; }
+
+  pre {
+    background: var(--ink-900); color: #e9e7e3; border-radius: 12px;
+    padding: 1.125rem 1.25rem; overflow-x: auto; margin: 1.75rem 0;
+    font-family: var(--mono); font-size: .8125rem; line-height: 1.7;
+  }
+  pre .c { color: #8f8a82; }
+  pre .k { color: #9bbcfc; }
+  pre .s { color: #f0a882; }
+
+  .table-wrap { overflow-x: auto; margin: 1.75rem 0; }
+  table { border-collapse: collapse; width: 100%; font-size: .875rem; min-width: 30rem; }
+  th, td { text-align: left; padding: .7rem .875rem; border-bottom: 1px solid var(--ink-200); vertical-align: top; }
+  th { font-weight: 600; color: var(--ink-900); border-bottom-color: var(--ink-300); font-size: .8125rem; }
+  td { color: var(--ink-600); }
+  td code { font-size: .8125rem; }
+
+  .terms { margin: 1.75rem 0; }
+  .terms dt { font-weight: 600; font-size: .9375rem; margin-top: 1.125rem; color: var(--ink-900); }
+  .terms dd { margin: .25rem 0 0; color: var(--ink-600); font-size: .9375rem; max-width: var(--measure); }
+
+  footer.doc-foot { border-top: 1px solid var(--ink-200); background: #fff; margin-top: 4rem; }
+  .foot-inner { max-width: 76rem; margin: 0 auto; padding: 2.5rem 1.5rem; font-size: .8125rem; color: var(--ink-500); }
+  .foot-inner a { color: var(--ink-600); }
+  .foot-links { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<a class="skip" href="#doc">Skip to the guide</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="wordmark" href="/">
+      <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M10 3h11a8 8 0 0 1 8 8v6a8 8 0 0 1-8 8h-9l-6 5v-5.6A8 8 0 0 1 2 17v-6a8 8 0 0 1 8-8Z" fill="#0b5ed7"/>
+        <circle cx="11" cy="14" r="2.1" fill="#fff"/><circle cx="16.5" cy="14" r="2.1" fill="#fff" opacity=".75"/><circle cx="22" cy="14" r="2.1" fill="#fff" opacity=".45"/>
+      </svg>
+      Peppi <span>Labs</span>
+    </a>
+    <span class="sep">/</span>
+    <span class="where">Chunkie</span>
+    <nav class="right">
+      <a href="/">Open the visualizer</a>
+      <a href="https://github.com/PeppiLabs/chunkie">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">A field guide</p>
+    <h1 class="display">How RAG works, explained plainly</h1>
+    <p class="standfirst">
+      Every idea behind retrieval augmented generation, in order, with no jargon assumed and nothing
+      hidden. Written to be read start to finish, or dipped into for one definition. The last part
+      explains how Chunkie itself is built, so you can read the code afterwards and recognise it.
+    </p>
+    <div class="hero-meta">
+      <span class="pill">No maths background needed</span>
+      <span class="pill">About 20 minutes</span>
+      <span class="pill">Pairs with the visualizer</span>
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+  <nav class="index" aria-label="Contents">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#problem">The problem RAG solves</a></li>
+      <li><a href="#pipeline">The pipeline in one picture</a></li>
+      <li><a href="#chunking">Chunking</a>
+        <ol>
+          <li><a href="#why-chunk">Why cut anything up</a></li>
+          <li><a href="#strategies">The three strategies</a></li>
+          <li><a href="#overlap">Overlap</a></li>
+        </ol>
+      </li>
+      <li><a href="#embeddings">Embeddings</a>
+        <ol>
+          <li><a href="#tokens">Tokens first</a></li>
+          <li><a href="#vector">What a vector is</a></li>
+          <li><a href="#meaning">Where meaning lives</a></li>
+        </ol>
+      </li>
+      <li><a href="#similarity">Measuring similarity</a>
+        <ol>
+          <li><a href="#cosine">Cosine similarity</a></li>
+          <li><a href="#scores">Reading the scores</a></li>
+        </ol>
+      </li>
+      <li><a href="#projection">Drawing 384 dimensions</a></li>
+      <li><a href="#retrieval">Retrieval and the prompt</a></li>
+      <li><a href="#limits">Where RAG falls down</a></li>
+      <li><a href="#inside">Inside Chunkie</a>
+        <ol>
+          <li><a href="#architecture">The architecture</a></li>
+          <li><a href="#files">Where each idea lives</a></li>
+          <li><a href="#decisions">Decisions worth knowing</a></li>
+        </ol>
+      </li>
+      <li><a href="#glossary">Glossary</a></li>
+    </ol>
+  </nav>
+
+  <main class="doc" id="doc">
+
+    <section id="problem">
+      <span class="sec-no">01</span>
+      <h2 class="display">The problem RAG solves</h2>
+      <p class="lead">
+        A language model knows what it was trained on. It does not know your documents, your chat
+        history, or anything written after its training finished.
+      </p>
+      <p>
+        The obvious fix is to paste everything into the question. That fails quickly. Models have a
+        limit on how much text they can read at once, long inputs cost more and answer more slowly,
+        and burying one relevant sentence in a hundred pages makes the answer worse rather than
+        better.
+      </p>
+      <p>
+        <strong>Retrieval augmented generation</strong> is the alternative. Rather than showing the
+        model everything, you find the handful of passages that actually relate to the question and
+        show it only those. The name describes the order of operations: retrieve first, then use
+        what you retrieved to augment the prompt, then generate an answer.
+      </p>
+      <p>
+        Everything that follows is about the retrieval half, because that is the half that decides
+        whether the answer is any good. A model given the right three paragraphs will do well. The
+        same model given three irrelevant paragraphs will produce something confident and wrong.
+      </p>
+    </section>
+
+    <section id="pipeline">
+      <span class="sec-no">02</span>
+      <h2 class="display">The pipeline in one picture</h2>
+      <p>
+        Four things happen, twice over. Your documents go through the top row once, ahead of time.
+        Your question goes through the bottom row every time you ask something.
+      </p>
+
+      <figure>
+        <svg viewBox="0 0 720 260" role="img" aria-label="Documents are chunked then embedded into a vector store. A question is embedded and compared against that store, and the closest chunks are placed into a prompt for the model.">
+          <defs>
+            <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+              <path d="M0 1.5 L7 4.5 L0 7.5 z" fill="#a29e97"/>
+            </marker>
+          </defs>
+          <g font-family="Geist Variable, system-ui, sans-serif" font-size="12">
+            <text x="0" y="14" fill="#726e67" font-size="10.5" letter-spacing="1.2">AHEAD OF TIME</text>
+            <g fill="#fff" stroke="#e4e2de">
+              <rect x="0" y="28" width="132" height="46" rx="9"/>
+              <rect x="176" y="28" width="132" height="46" rx="9"/>
+              <rect x="352" y="28" width="132" height="46" rx="9"/>
+            </g>
+            <rect x="528" y="28" width="166" height="46" rx="9" fill="#f0f5ff" stroke="#c4d7fe"/>
+            <g fill="#262421" text-anchor="middle" font-size="12.5">
+              <text x="66" y="56">Your documents</text>
+              <text x="242" y="56">Chunks</text>
+              <text x="418" y="56">Vectors</text>
+              <text x="611" y="56" fill="#0a4bad">Vector store</text>
+            </g>
+            <g stroke="#a29e97" stroke-width="1.2" marker-end="url(#ar)" fill="none">
+              <path d="M136 51 H170"/><path d="M312 51 H346"/><path d="M488 51 H522"/>
+            </g>
+            <g fill="#a29e97" font-size="10" text-anchor="middle">
+              <text x="153" y="44">cut</text><text x="329" y="44">embed</text><text x="505" y="44">store</text>
+            </g>
+
+            <text x="0" y="140" fill="#726e67" font-size="10.5" letter-spacing="1.2">EVERY TIME YOU ASK</text>
+            <g fill="#fff" stroke="#e4e2de">
+              <rect x="0" y="154" width="132" height="46" rx="9"/>
+              <rect x="176" y="154" width="132" height="46" rx="9"/>
+            </g>
+            <rect x="352" y="154" width="132" height="46" rx="9" fill="#fff7f2" stroke="#f5c9ab"/>
+            <rect x="528" y="154" width="166" height="46" rx="9" fill="#fff" stroke="#e4e2de"/>
+            <g fill="#262421" text-anchor="middle" font-size="12.5">
+              <text x="66" y="182">Your question</text>
+              <text x="242" y="182">One vector</text>
+              <text x="418" y="182" fill="#b4530f">Closest chunks</text>
+              <text x="611" y="182">Prompt to model</text>
+            </g>
+            <g stroke="#a29e97" stroke-width="1.2" marker-end="url(#ar)" fill="none">
+              <path d="M136 177 H170"/><path d="M312 177 H346"/><path d="M488 177 H522"/>
+            </g>
+            <g fill="#a29e97" font-size="10" text-anchor="middle">
+              <text x="153" y="170">embed</text><text x="329" y="170">compare</text><text x="505" y="170">assemble</text>
+            </g>
+            <path d="M611 78 V148" stroke="#c4d7fe" stroke-width="1.2" stroke-dasharray="3 3" marker-end="url(#ar)" fill="none"/>
+            <text x="622" y="118" fill="#a29e97" font-size="10">searched against</text>
+          </g>
+        </svg>
+        <figcaption>
+          The top row runs once per document. The bottom row runs on every question. The only place
+          they meet is the comparison in the middle.
+        </figcaption>
+      </figure>
+
+      <p>
+        Chunkie walks you through exactly these four steps, in this order, using a chat transcript
+        as the document. The rest of this guide explains each one properly.
+      </p>
+    </section>
+
+    <section id="chunking">
+      <span class="sec-no">03</span>
+      <h2 class="display">Chunking</h2>
+
+      <h3 id="why-chunk">Why cut anything up</h3>
+      <p>
+        Search returns whole pieces. If your entire archive were one piece, every question would
+        match it equally well and you would learn nothing about where the answer actually is.
+        Cutting the document into smaller pieces is what lets a search point at a specific passage.
+      </p>
+      <p>
+        A <strong>chunk</strong> is one of those pieces. It is the unit of everything that follows:
+        one chunk becomes one vector, gets one score, and is retrieved or not retrieved as a whole.
+      </p>
+
+      <div class="note">
+        <span class="label">The trade-off</span>
+        <p>
+          Small chunks are precise but lose context. A chunk containing only "yes, do that" has lost
+          the question it was answering, so it matches nothing useful. Large chunks keep context but
+          dilute it: one relevant sentence among twenty gets averaged away by the other nineteen.
+          Choosing chunk size is one of the few decisions that genuinely changes how well a RAG
+          system works.
+        </p>
+      </div>
+
+      <h3 id="strategies">The three strategies</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Strategy</th><th>How it cuts</th><th>Best when</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Per message</strong></td>
+              <td>One chunk per message.</td>
+              <td>Messages are self contained. Precise, but short replies lose their question.</td>
+            </tr>
+            <tr>
+              <td><strong>Fixed window</strong></td>
+              <td>The document becomes one long string, sliced every N characters with an overlap.</td>
+              <td>The general case, and what most production systems use. Ignores structure entirely.</td>
+            </tr>
+            <tr>
+              <td><strong>Grouped</strong></td>
+              <td>N consecutive messages per chunk.</td>
+              <td>Question and answer need to stay together. Uses the structure the document already has.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="overlap">Overlap</h3>
+      <p>
+        Fixed windows have a problem: a sentence that straddles a boundary gets split in half, and
+        neither half retrieves well. <strong>Overlap</strong> is the fix. Each chunk repeats the
+        last few hundred characters of the one before it, so any given sentence appears whole in at
+        least one chunk.
+      </p>
+      <pre><span class="c">// size 200, overlap 60</span>
+chunk 1  [ 0 .................... 200 ]
+chunk 2            [ 140 .................... 340 ]
+chunk 3                      [ 280 .................... 480 ]
+                    <span class="c">^^^^^^</span>
+         <span class="c">these 60 characters appear in both chunks</span></pre>
+      <p>
+        The cost is storage and duplication: with 30 percent overlap you are embedding roughly 30
+        percent more text. That is usually worth it. In Chunkie, overlapping text is tinted blue in
+        the chunk list so you can see the repetition rather than take it on trust.
+      </p>
+    </section>
+
+    <section id="embeddings">
+      <span class="sec-no">04</span>
+      <h2 class="display">Embeddings</h2>
+      <p class="lead">
+        This is the idea everything else rests on, and it is simpler than it sounds.
+      </p>
+
+      <h3 id="tokens">Tokens first</h3>
+      <p>
+        Models do not read characters or words. They read <strong>tokens</strong>: common chunks of
+        text, roughly three quarters of a word each on average. "Delivery" might be one token,
+        "reimbursed" might be two. This matters mainly because model limits are counted in tokens,
+        and because it explains why models are sometimes strange about spelling.
+      </p>
+
+      <h3 id="vector">What a vector is</h3>
+      <p>
+        An <strong>embedding</strong> is a list of numbers that stands for a piece of text. That
+        list is called a <strong>vector</strong>, and how many numbers it holds is its
+        <strong>dimensions</strong>. The model Chunkie uses produces 384 of them per chunk.
+      </p>
+      <p>
+        A vector is a direction. With two numbers you can point somewhere on a page. With three you
+        can point somewhere in a room. With 384 you can point somewhere in a space nobody can
+        picture, but the arithmetic works exactly the same way.
+      </p>
+      <p>
+        The useful property is this: <strong>text with similar meaning gets a similar list</strong>,
+        even when the words are completely different. That is not a coincidence. It is what the
+        model was trained to do, over a very large amount of text.
+      </p>
+
+      <div class="card">
+        <p style="margin-bottom:.75rem"><strong>A worked example.</strong> These are real cosine scores from the model Chunkie ships with:</p>
+        <div class="table-wrap" style="margin:0">
+          <table>
+            <tbody>
+              <tr><td>"the cat sat on the mat" against "a feline rested on a rug"</td><td style="text-align:right"><code>0.56</code></td></tr>
+              <tr><td>"the cat sat on the mat" against "quarterly revenue rose 12 percent"</td><td style="text-align:right"><code>0.02</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:.75rem; font-size:.875rem">
+          The first pair shares almost no words. The second pair shares "the". Word counting gets
+          this exactly backwards; the embedding gets it right.
+        </p>
+      </div>
+
+      <h3 id="meaning">Where meaning lives</h3>
+      <p>
+        A reasonable question: does dimension 47 mean "politeness"? Almost never. Individual
+        dimensions are not interpretable, and nobody assigned them meanings. Meaning is distributed
+        across the whole pattern, which is why Chunkie draws a vector as a coloured strip rather
+        than asking you to read 384 numbers. You are meant to compare the shape of two strips, not
+        read any single cell.
+      </p>
+    </section>
+
+    <section id="similarity">
+      <span class="sec-no">05</span>
+      <h2 class="display">Measuring similarity</h2>
+
+      <h3 id="cosine">Cosine similarity</h3>
+      <p>
+        Once both your question and every chunk are vectors, comparing them is geometry. The usual
+        measure is <strong>cosine similarity</strong>: the cosine of the angle between two vectors.
+        It asks whether two arrows point the same way, and deliberately ignores how long they are.
+      </p>
+
+      <figure>
+        <svg viewBox="0 0 640 190" role="img" aria-label="Three pairs of arrows. A small angle scores near one, a right angle scores near zero, and opposite directions score minus one.">
+          <g font-family="Geist Variable, system-ui, sans-serif" font-size="11.5">
+            <g transform="translate(80,105)">
+              <path d="M0 0 L92 -46" stroke="#0b5ed7" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M0 0 L86 -62" stroke="#6b98f9" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M34 -17 A38 38 0 0 0 30 -24" fill="none" stroke="#a29e97" stroke-width="1.1"/>
+              <text x="46" y="34" text-anchor="middle" fill="#262421" font-weight="600">near 1.0</text>
+              <text x="46" y="52" text-anchor="middle" fill="#726e67">same meaning</text>
+            </g>
+            <g transform="translate(300,105)">
+              <path d="M0 0 L100 0" stroke="#0b5ed7" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M0 0 L0 -76" stroke="#6b98f9" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M22 0 L22 -22 L0 -22" fill="none" stroke="#a29e97" stroke-width="1.1"/>
+              <text x="46" y="34" text-anchor="middle" fill="#262421" font-weight="600">near 0</text>
+              <text x="46" y="52" text-anchor="middle" fill="#726e67">unrelated</text>
+            </g>
+            <g transform="translate(520,105)">
+              <path d="M0 0 L84 -34" stroke="#0b5ed7" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M0 0 L-72 30" stroke="#6b98f9" stroke-width="2.2" stroke-linecap="round"/>
+              <text x="6" y="34" text-anchor="middle" fill="#262421" font-weight="600">near -1.0</text>
+              <text x="6" y="52" text-anchor="middle" fill="#726e67">opposite</text>
+            </g>
+          </g>
+        </svg>
+        <figcaption>
+          Length is ignored on purpose. A long chunk and a short chunk about the same subject should
+          score alike, and they do.
+        </figcaption>
+      </figure>
+
+      <p>
+        The formula is a dot product divided by the two lengths. When vectors are already scaled to
+        length one, which most embedding models do for you, it collapses to just the dot product:
+        multiply the pairs and add them up.
+      </p>
+      <pre><span class="k">function</span> cosineSimilarity(a, b) {
+  <span class="k">let</span> dot = 0, normA = 0, normB = 0;
+  <span class="k">for</span> (<span class="k">let</span> i = 0; i &lt; a.length; i++) {
+    dot   += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  <span class="k">return</span> dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}</pre>
+      <p>
+        That is the entire search engine. There is no index and no clever data structure: score
+        every chunk, sort, take the top few. On a few hundred chunks it finishes in under a
+        millisecond, which is why Chunkie can afford to re-run it on every character you type.
+      </p>
+
+      <h3 id="scores">Reading the scores</h3>
+      <p>
+        Scores are relative, not absolute. There is no universal threshold that means "relevant",
+        and the useful signal is usually the <em>gap</em> between the top result and the rest. A
+        clear winner means the document really does answer you. A flat spread of mediocre scores
+        usually means it does not.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Roughly</th><th>Usually means</th></tr></thead>
+          <tbody>
+            <tr><td><code>0.7</code> and above</td><td>Very close, often near paraphrase</td></tr>
+            <tr><td><code>0.4</code> to <code>0.7</code></td><td>Related. Most genuinely useful hits sit here</td></tr>
+            <tr><td><code>0.2</code> to <code>0.4</code></td><td>Loosely connected, same general subject</td></tr>
+            <tr><td>below <code>0.2</code></td><td>Little in common</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Treat those bands as orientation rather than law. They shift with the model, the language
+        and the length of your chunks, which is exactly why you should look at your own numbers
+        instead of trusting a table.
+      </p>
+    </section>
+
+    <section id="projection">
+      <span class="sec-no">06</span>
+      <h2 class="display">Drawing 384 dimensions</h2>
+      <p>
+        Nobody can picture 384 dimensions, so the map in Chunkie flattens them to two. The method is
+        <strong>principal component analysis</strong>, and the idea is less intimidating than the
+        name.
+      </p>
+      <p>
+        Imagine a cloud of points in 3D and a torch. Shine it from different angles and you get
+        different shadows on the wall. Most angles squash the cloud into a blob. One angle spreads
+        it out the most. PCA finds that angle, then the best angle at right angles to it, and uses
+        those two as the x and y axes.
+      </p>
+      <p>
+        So the axes have no names. They are simply the two directions along which your particular
+        chunks differ most. Distance on the map is real: dots near each other really are close in
+        meaning. But two dimensions cannot hold everything 384 did, so the map is an honest summary
+        rather than the whole truth. Two dots that look close may be further apart than they appear.
+      </p>
+      <div class="note">
+        <span class="label">Worth knowing</span>
+        <p>
+          The search itself never uses the map. Scoring happens in all 384 dimensions. The
+          projection exists purely so that you can see the structure, and it is computed after the
+          fact.
+        </p>
+      </div>
+    </section>
+
+    <section id="retrieval">
+      <span class="sec-no">07</span>
+      <h2 class="display">Retrieval and the prompt</h2>
+      <p>
+        Retrieval is the part with the fewest surprises. Score every chunk, sort by score, keep the
+        best few. That count is usually called <strong>top k</strong>, and k is typically somewhere
+        between three and ten. Chunkie uses five.
+      </p>
+      <p>
+        In a production system the vectors live in a <strong>vector database</strong>, which uses an
+        approximate nearest neighbour index so it does not have to score millions of rows one by
+        one. It trades a little accuracy for a great deal of speed. Chunkie has no database because
+        with a few hundred chunks an exhaustive scan is already instant, and hiding the comparison
+        inside a library would defeat the purpose of the project.
+      </p>
+      <p>
+        The retrieved chunks then get assembled into a prompt. This is the augmented part of the
+        name, and it is usually just string concatenation:
+      </p>
+      <pre><span class="s">Answer the question using only the context below.</span>
+
+<span class="s">CONTEXT:</span>
+<span class="c">[1] ...highest scoring chunk...</span>
+<span class="c">[2] ...second...</span>
+<span class="c">[3] ...third...</span>
+
+<span class="s">QUESTION:</span> <span class="c">what the person actually asked</span></pre>
+      <p>
+        The instruction to use only the context is what keeps the model anchored to your documents
+        rather than to its own recollection. Chunkie shows you this assembled prompt at the end of
+        the search step, but deliberately stops there and never calls a model. The retrieval half is
+        the half worth understanding, and it is the half people skip.
+      </p>
+    </section>
+
+    <section id="limits">
+      <span class="sec-no">08</span>
+      <h2 class="display">Where RAG falls down</h2>
+      <p>
+        A guide that only lists strengths is not much use. These are the failure modes you will meet
+        in practice, most of which you can reproduce in Chunkie in under a minute.
+      </p>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>There is always a nearest chunk</h4>
+          <p>
+            Ask about something the document never mentions and you still get results, because
+            something always scores highest. Look at the scores, not the count. This is why real
+            systems set a minimum score and say they do not know.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Bad chunking cannot be recovered</h4>
+          <p>
+            If a fact is split across two chunks, no amount of clever searching reassembles it.
+            Retrieval quality is capped by the decision you made before any of it ran.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Meaning search is bad at exact strings</h4>
+          <p>
+            Order numbers, error codes and rare names are precisely what embeddings smooth away.
+            Serious systems pair vector search with keyword search for this reason.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Questions and answers look different</h4>
+          <p>
+            A question often resembles other questions more than it resembles its own answer, so a
+            question in your document can outrank the reply that answers it. Grouped chunks help.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Retrieval does not fix hallucination</h4>
+          <p>
+            Giving a model the right passage makes a wrong answer less likely. It does not make one
+            impossible, and a confident answer built on an irrelevant passage is the worst outcome
+            of all.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Embeddings inherit their training</h4>
+          <p>
+            A model trained mostly on English handles other languages less well, and a general model
+            handles specialist vocabulary less well. Test on your own material.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="inside">
+      <span class="sec-no">09</span>
+      <h2 class="display">Inside Chunkie</h2>
+      <p class="lead">
+        Everything above is general. This part is specific: how this project is built, and why.
+      </p>
+
+      <h3 id="architecture">The architecture</h3>
+      <p>
+        There is no backend. The embedding model runs inside your browser tab through
+        <a href="https://github.com/huggingface/transformers.js">transformers.js</a>, which executes
+        an ONNX model on WebAssembly. The vectors live in a JavaScript array. Nothing is uploaded
+        anywhere, and there is no server, no database and no account.
+      </p>
+      <pre>Your browser tab
+  main thread                          web worker
+  ───────────                          ──────────
+  parse the file
+  cut into chunks
+  send chunk texts        ──────────▶  load model (once, then cached)
+                                       embed a batch
+                          ◀──────────  send the batch back
+                                       ...repeat...
+  score every chunk
+  project to 2D
+  draw</pre>
+      <p>
+        The model runs in a <strong>web worker</strong> because it is genuinely slow work. On the
+        main thread it would freeze the page while it ran. Vectors are streamed back one batch at a
+        time rather than held until the end, which is why you can watch them appear.
+      </p>
+
+      <h3 id="files">Where each idea lives</h3>
+      <p>Every concept in this guide has one file that implements it, and nothing else touches it.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Idea</th><th>File</th><th>What is in it</th></tr></thead>
+          <tbody>
+            <tr><td>Parsing</td><td><code>src/lib/parse.ts</code></td><td>Turns an uploaded file into messages, accepting the field names real exports actually use</td></tr>
+            <tr><td>Chunking</td><td><code>src/lib/chunk.ts</code></td><td>The three strategies, word boundary snapping, and overlap accounting</td></tr>
+            <tr><td>Cosine and PCA</td><td><code>src/lib/vector.ts</code></td><td>Similarity scoring, plus a power iteration projection to two dimensions</td></tr>
+            <tr><td>The model</td><td><code>src/worker/embedder.worker.ts</code></td><td>Loads the model and embeds batches off the main thread</td></tr>
+            <tr><td>Talking to it</td><td><code>src/lib/embedder.ts</code></td><td>Promise per request, per request progress, timeouts, streamed batches</td></tr>
+            <tr><td>The pipeline</td><td><code>src/hooks/useRagPipeline.ts</code></td><td>All the state, and the guards that stop stale results landing</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="decisions">Decisions worth knowing</h3>
+      <dl class="terms">
+        <dt>The model is quantised</dt>
+        <dd>
+          <code>all-MiniLM-L6-v2</code> at 8 bit precision, roughly 23 MB. Full precision would be
+          about four times larger for no visible difference at this scale. It downloads once and
+          your browser caches it.
+        </dd>
+        <dt>Search runs on every keystroke</dt>
+        <dd>
+          Embedding one short question takes about a millisecond and scoring several hundred chunks
+          takes under one, so there is nothing worth debouncing and no reason for a search button.
+          Requests carry a sequence number so a slower one cannot overwrite a newer one.
+        </dd>
+        <dt>PCA is written out rather than imported</dt>
+        <dd>
+          Around eighty lines of power iteration in <code>vector.ts</code>. A library would have been
+          fewer lines and less readable, and readability is the point of the project.
+        </dd>
+        <dt>Cross origin isolation headers are set locally too</dt>
+        <dd>
+          <code>vite.config.ts</code> sets the same COOP and COEP headers in dev and preview. They
+          let the WASM runtime use its multi threaded backend. Setting them in only one environment
+          is a reliable way to ship something that works on your machine and nowhere else.
+        </dd>
+      </dl>
+    </section>
+
+    <section id="glossary">
+      <span class="sec-no">10</span>
+      <h2 class="display">Glossary</h2>
+      <dl class="terms">
+        <dt>Chunk</dt><dd>One retrievable piece of a document. The unit that gets embedded, scored and returned.</dd>
+        <dt>Context window</dt><dd>The maximum amount of text a model can read in one go, counted in tokens.</dd>
+        <dt>Cosine similarity</dt><dd>How closely two vectors point the same way. Runs from 1 through 0 to -1, and ignores length.</dd>
+        <dt>Dimensions</dt><dd>How many numbers are in a vector. 384 for the model here.</dd>
+        <dt>Embedding</dt><dd>A vector that stands for a piece of text, arranged so similar meanings sit near each other.</dd>
+        <dt>Hallucination</dt><dd>A confident answer that is not supported by the source. Retrieval reduces it and does not remove it.</dd>
+        <dt>Overlap</dt><dd>Text repeated between neighbouring chunks so sentences are not cut in half at a boundary.</dd>
+        <dt>PCA</dt><dd>Principal component analysis. Finds the directions along which data varies most, used here to draw 384 dimensions as 2.</dd>
+        <dt>RAG</dt><dd>Retrieval augmented generation. Retrieve relevant passages, add them to the prompt, then generate.</dd>
+        <dt>Semantic search</dt><dd>Searching by meaning rather than by matching words.</dd>
+        <dt>Token</dt><dd>The unit a model reads. Roughly three quarters of a word on average.</dd>
+        <dt>Top k</dt><dd>How many of the highest scoring chunks to keep. Five in Chunkie.</dd>
+        <dt>Vector database</dt><dd>Storage built for finding nearest vectors quickly across millions of rows, using an approximate index.</dd>
+        <dt>Web worker</dt><dd>A background thread in the browser. Keeps slow work from freezing the page.</dd>
+      </dl>
+    </section>
+
+  </main>
+</div>
+
+<footer class="doc-foot">
+  <div class="foot-inner">
+    <div class="foot-links">
+      <a href="/">Open the visualizer</a>
+      <a href="https://github.com/PeppiLabs/chunkie">GitHub</a>
+      <a href="https://github.com/PeppiLabs/chunkie/blob/main/LICENSE">MIT License</a>
+    </div>
+    <p style="margin:0">
+      Chunkie is an open source teaching tool from Peppi Labs. Everything runs in your browser:
+      files you load are never uploaded, and no account is needed.
+    </p>
+    <p style="margin:.75rem 0 0">Copyright 2026 Peppi Labs. Released under the MIT License.</p>
+  </div>
+</footer>
+
+<script>
+  // Highlights the section you are currently reading in the contents list.
+  var links = Array.prototype.slice.call(document.querySelectorAll('.index a[href^="#"]'));
+  var targets = links
+    .map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); })
+    .filter(Boolean);
+
+  if ('IntersectionObserver' in window && targets.length) {
+    var seen = new Set();
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) seen.add(entry.target.id);
+        else seen.delete(entry.target.id);
+      });
+      // The topmost visible heading wins, so the marker does not jump around.
+      var current = targets.filter(function (t) { return seen.has(t.id); })[0];
+      links.forEach(function (a) {
+        a.classList.toggle('here', !!current && a.getAttribute('href') === '#' + current.id);
+      });
+    }, { rootMargin: '0px 0px -70% 0px' });
+    targets.forEach(function (t) { observer.observe(t); });
+  }
+</script>
+</body>
+</html>

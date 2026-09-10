@@ -14,9 +14,13 @@ interface ExplainerProps {
  */
 export function Explainer({ question, children }: ExplainerProps) {
   return (
-    <div className="h-full rounded-2xl border border-brand-100 bg-brand-50/60 px-5 py-4">
-      <h3 className="text-sm font-semibold text-brand-800">{question}</h3>
-      <div className="mt-1.5 space-y-2 text-sm leading-relaxed text-ink-700">{children}</div>
+    <div className="h-full rounded-2xl border border-ink-200 bg-white px-5 py-5">
+      <h3 className="text-[0.9375rem] font-semibold tracking-[-0.015em] text-ink-900">
+        {question}
+      </h3>
+      <div className="mt-2.5 space-y-2.5 text-[0.8125rem] leading-[1.65] text-ink-600">
+        {children}
+      </div>
     </div>
   );
 }

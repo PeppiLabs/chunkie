@@ -82,7 +82,7 @@ export function ChunkStep({
     >
       {/* Controls beside their result, so changing a setting and seeing what it
           did do not need a scroll between them. */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid items-start gap-6 lg:grid-cols-2">
         <Panel>
           <PanelHeader
             title="How should we cut it up?"

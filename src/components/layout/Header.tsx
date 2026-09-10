@@ -24,6 +24,12 @@ export function Header({ onReset, showReset }: HeaderProps) {
             </Button>
           )}
           <a
+            href="/concepts.html"
+            className="rounded-lg px-3 py-1.5 text-sm text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-900"
+          >
+            Guide
+          </a>
+          <a
             href={REPO_URL}
             target="_blank"
             rel="noreferrer noopener"

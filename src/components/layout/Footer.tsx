@@ -11,6 +11,9 @@ export function Footer() {
           <Logo size={22} />
 
           <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-600">
+            <a href="/concepts.html" className="font-medium text-brand-700 hover:text-brand-800">
+              How RAG works, explained
+            </a>
             <a href={REPO_URL} target="_blank" rel="noreferrer noopener" className="hover:text-ink-900">
               GitHub
             </a>

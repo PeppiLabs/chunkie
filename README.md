@@ -19,6 +19,26 @@ A [Peppi Labs](https://github.com/PeppiLabs) open source project.
 
 ---
 
+## The guide
+
+There is a full written explanation of every idea in here, in
+**[`public/concepts.html`](public/concepts.html)**: chunking, tokens, embeddings, vectors, cosine
+similarity, the 2D projection, retrieval, where RAG fails, and how this project is built.
+
+It is a self contained HTML page, so open it whichever way suits:
+
+```bash
+open public/concepts.html          # macOS
+xdg-open public/concepts.html      # Linux
+start public\concepts.html         # Windows
+```
+
+Or run the app and click **Guide** in the header, which serves it at
+<http://localhost:5173/concepts.html>.
+
+GitHub shows HTML files as source rather than rendering them, so read it in a browser rather than
+in the file view here.
+
 ## What this is
 
 Most explanations of RAG are diagrams. This one is the real thing, running in front of you.
@@ -158,6 +178,7 @@ src/
     common/         Buttons, panels, the explainer callouts
     layout/         Header, footer, step navigation
 public/samples/     The three bundled transcripts
+public/concepts.html  The written guide to every concept
 ```
 
 ## A note on `npm audit`
@@ -176,6 +197,18 @@ grep -r "sharp" dist/               # no matches
 ```
 
 They are install time dependencies of the toolchain, not part of what visitors download.
+
+## Learning more
+
+The [concepts guide](public/concepts.html) covers the ideas in depth. If you would rather read
+code, every concept has exactly one file that implements it:
+
+| Idea | File |
+| --- | --- |
+| Chunking, and the three strategies | [`src/lib/chunk.ts`](src/lib/chunk.ts) |
+| Cosine similarity and the 2D projection | [`src/lib/vector.ts`](src/lib/vector.ts) |
+| Running the model off the main thread | [`src/worker/embedder.worker.ts`](src/worker/embedder.worker.ts) |
+| The pipeline state end to end | [`src/hooks/useRagPipeline.ts`](src/hooks/useRagPipeline.ts) |
 
 ## Contributing
 

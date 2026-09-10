@@ -149,7 +149,7 @@ export function SearchStep({
         </Panel>
 
         {hits && (
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid items-start gap-6 lg:grid-cols-2">
             <Panel tone="result">
               <PanelHeader
                 tone="result"

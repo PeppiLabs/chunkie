@@ -104,7 +104,7 @@ export function UploadStep({ transcript, onFile, onSample, onContinue }: UploadS
     >
       {/* The picker and what it loaded, side by side, so choosing a transcript
           and reading it are not separated by a scroll. */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid items-start gap-6 lg:grid-cols-2">
         <Panel>
           <PanelHeader
             title="Start with a chat transcript"
@@ -239,11 +239,8 @@ export function UploadStep({ transcript, onFile, onSample, onContinue }: UploadS
             </div>
           </Panel>
         ) : (
-          <Panel
-            tone="result"
-            className="flex min-h-[18rem] items-center justify-center p-8 text-center"
-          >
-            <p className="max-w-xs text-sm leading-relaxed text-ink-600">
+          <Panel tone="result" className="p-10 text-center">
+            <p className="mx-auto max-w-xs text-[0.8125rem] leading-relaxed text-ink-600">
               Whichever transcript you pick appears here, exactly as the pipeline sees it, before
               anything is done to it.
             </p>

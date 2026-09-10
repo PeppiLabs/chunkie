@@ -43,9 +43,13 @@ export function StepNav({ current, onSelect, canVisit }: StepNavProps) {
                       : 'cursor-not-allowed border-transparent text-ink-500'
                 }`}
               >
-                <span className="font-mono text-xs tabular-nums opacity-60">{index + 1}</span>
-                <span className="text-sm font-medium">{LABELS[step].title}</span>
-                <span className="hidden text-xs text-ink-500 md:inline">
+                <span className="font-mono text-[0.6875rem] tabular-nums opacity-50">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span className="text-[0.8125rem] font-medium tracking-[-0.005em]">
+                  {LABELS[step].title}
+                </span>
+                <span className="hidden text-[0.75rem] text-ink-500 md:inline">
                   {LABELS[step].caption}
                 </span>
               </button>

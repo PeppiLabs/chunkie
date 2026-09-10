@@ -1,42 +1,78 @@
 @import "tailwindcss";
 
-/*
- * Peppi Labs palette.
- * Brand blue is taken from the Peppi product mark. Everything else is a
- * neutral scale chosen to keep long passages of explanation comfortable to read.
- */
 @theme {
-  --color-brand-50: #eff5ff;
-  --color-brand-100: #dbe8fe;
-  --color-brand-200: #bfd7fe;
-  --color-brand-300: #93bbfd;
-  --color-brand-400: #609afa;
-  --color-brand-500: #3b7bf6;
+  /*
+   * Brand blue, anchored on the Peppi mark at 600.
+   * The lighter steps are pulled slightly toward violet so tinted surfaces
+   * read as considered rather than as washed out blue.
+   */
+  --color-brand-50: #f0f5ff;
+  --color-brand-100: #dfe9ff;
+  --color-brand-200: #c4d7fe;
+  --color-brand-300: #9bbcfc;
+  --color-brand-400: #6b98f9;
+  --color-brand-500: #4174f0;
   --color-brand-600: #0b5ed7;
-  --color-brand-700: #0c4bb0;
-  --color-brand-800: #10408f;
-  --color-brand-900: #133875;
+  --color-brand-700: #0a4bad;
+  --color-brand-800: #0d3f8c;
+  --color-brand-900: #103670;
 
-  --color-ink-50: #f8fafc;
-  --color-ink-100: #f1f5f9;
-  --color-ink-200: #e2e8f0;
-  --color-ink-300: #cbd5e1;
-  --color-ink-400: #94a3b8;
-  --color-ink-500: #64748b;
-  --color-ink-600: #475569;
-  --color-ink-700: #334155;
-  --color-ink-800: #1e293b;
-  --color-ink-900: #0f172a;
+  /*
+   * Ink: a warm grey rather than a blue one. Cold slate greys make a page feel
+   * like a dashboard. A touch of warmth reads as paper and is easier to sit
+   * with for long stretches of reading.
+   */
+  --color-ink-50: #faf9f8;
+  --color-ink-100: #f3f2f0;
+  --color-ink-150: #ecebe8;
+  --color-ink-200: #e4e2de;
+  --color-ink-300: #cfccc6;
+  --color-ink-400: #a29e97;
+  --color-ink-500: #726e67;
+  --color-ink-600: #55514b;
+  --color-ink-700: #3d3a35;
+  --color-ink-800: #262421;
+  --color-ink-900: #141311;
 
   /* Warm accent, used only for the query marker so it never reads as brand blue. */
-  --color-accent-500: #f97316;
+  --color-accent-500: #e8590c;
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-ink-50);
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-optical-sizing: auto;
+}
+
+/*
+ * Display headings.
+ *
+ * One typeface throughout, so the difference between a headline and a label is
+ * carried by weight, size and tracking rather than by a second voice. Large
+ * text needs tighter tracking than small text to look evenly set, which is the
+ * whole job of this class.
+ */
+.font-display {
+  font-weight: 600;
+  letter-spacing: -0.033em;
+  line-height: 1.04;
+}
+
+/* Numbers that sit in columns should not jitter as they change. */
+.tabular-nums,
+.font-mono {
+  font-variant-numeric: tabular-nums;
 }
 
 /*
@@ -62,11 +98,17 @@ html {
   animation: rise-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-body {
-  background-color: var(--color-ink-50);
-  color: var(--color-ink-900);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fade-in 200ms ease-out both;
 }
 
 /* Respect a reduced motion preference across every transition in the app. */
@@ -85,6 +127,13 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-brand-600);
   outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* The browser's own clear button on a search field clashes with our own chrome. */
+input[type='search']::-webkit-search-decoration,
+input[type='search']::-webkit-search-cancel-button {
+  appearance: none;
 }
 
 ::-webkit-scrollbar {
