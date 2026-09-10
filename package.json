@@ -1,0 +1,61 @@
+{
+  "name": "chunkie",
+  "version": "1.0.0",
+  "private": false,
+  "description": "An open source, browser based visualizer that shows how retrieval augmented generation works, from chunking to embeddings to semantic search.",
+  "license": "MIT",
+  "author": "Peppi Labs",
+  "homepage": "https://github.com/PeppiLabs/chunkie",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PeppiLabs/chunkie.git"
+  },
+  "bugs": {
+    "url": "https://github.com/PeppiLabs/chunkie/issues"
+  },
+  "keywords": [
+    "rag",
+    "retrieval-augmented-generation",
+    "embeddings",
+    "vector-search",
+    "semantic-search",
+    "transformers-js",
+    "education",
+    "visualization"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.2.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "tailwindcss": "^4.1.18",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.4",
+    "vite": "^7.2.4",
+    "vitest": "^3.2.7"
+  }
+}

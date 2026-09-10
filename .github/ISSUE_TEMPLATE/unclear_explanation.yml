@@ -1,0 +1,31 @@
+name: Unclear explanation
+description: Something the app says did not make sense
+labels: [clarity]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This project exists to explain RAG to people meeting it for the first time.
+        If something confused you, that is a real problem and worth reporting.
+
+  - type: textarea
+    id: quote
+    attributes:
+      label: What did it say
+      description: Quote the sentence or label that confused you.
+    validations:
+      required: true
+
+  - type: textarea
+    id: confusion
+    attributes:
+      label: What was confusing about it
+      placeholder: I did not know what "cosine similarity" meant and the page assumed I did.
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: How would you say it instead
+      description: Optional. Even a rough idea helps.
