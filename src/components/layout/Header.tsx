@@ -2,14 +2,13 @@ import { Logo } from '../brand/Logo';
 import { Button } from '../common/Button';
 
 interface HeaderProps {
-  /** Shown once a transcript is loaded, so the visitor can start over. */
-  onReset?: () => void;
-  showReset: boolean;
+  /** Clears everything and returns to the first step. */
+  onReset: () => void;
 }
 
 const REPO_URL = 'https://github.com/PeppiLabs/chunkie';
 
-export function Header({ onReset, showReset }: HeaderProps) {
+export function Header({ onReset }: HeaderProps) {
   return (
     <header className="border-b border-ink-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3.5 sm:px-6">
@@ -18,11 +17,9 @@ export function Header({ onReset, showReset }: HeaderProps) {
         <span className="hidden text-sm text-ink-500 sm:inline">Chunkie</span>
 
         <div className="ml-auto flex items-center gap-2">
-          {showReset && (
-            <Button variant="ghost" size="sm" onClick={onReset}>
-              Start over
-            </Button>
-          )}
+          <Button variant="ghost" size="sm" onClick={onReset}>
+            Start over
+          </Button>
           <a
             href="/concepts.html"
             className="rounded-lg px-3 py-1.5 text-sm text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-900"

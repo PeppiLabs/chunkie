@@ -100,7 +100,7 @@ export default function App() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header showReset={transcript !== null} onReset={reset} />
+      <Header onReset={reset} />
       <StepNav current={step} onSelect={setStep} canVisit={canVisit} />
 
       {/* Announces stage changes and search results, which are otherwise

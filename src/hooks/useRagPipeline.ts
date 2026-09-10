@@ -263,12 +263,24 @@ export function useRagPipeline() {
     [queryVector, projection],
   );
 
-  /** Clears everything and returns to the upload step. */
+  /**
+   * Clears everything and returns to the upload step.
+   *
+   * Dropping the transcript makes the chunk list empty, and the effect above
+   * then clears the vectors, the projection and the results. Everything that
+   * effect does not own is cleared here, so nothing from the previous run can
+   * survive into the next one.
+   */
   const reset = useCallback(() => {
+    generationRef.current += 1;
+    querySeqRef.current += 1;
+
     setTranscript(null);
     setChunkOptions(DEFAULT_CHUNK_OPTIONS);
     setQuery('');
     setError(null);
+    setStreamed([]);
+    setEmbedding(false);
     setStep('upload');
   }, []);
 
