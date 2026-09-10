@@ -6,8 +6,8 @@
 
 **See how retrieval augmented generation actually works.**
 
-Load a chat transcript and watch it get chunked, turned into vectors, and searched by meaning.
-Every step is visible, nothing is hidden, and no jargon is assumed.
+Clone it, run it, and watch a chat transcript get chunked, turned into vectors, and searched by
+meaning. Every step is visible, nothing is hidden, and no jargon is assumed.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-0b5ed7.svg)](LICENSE)
 [![Built with React](https://img.shields.io/badge/React-19-0b5ed7.svg)](https://react.dev)
@@ -40,8 +40,8 @@ systems bother with embeddings, and you can watch it happen.
 
 ## Try it
 
-Nothing to install and no account to create. Pick one of the three bundled transcripts,
-or drop in your own JSON file.
+Clone the repository and run it (see [Running it](#running-it) below). Three transcripts are
+bundled, so there is nothing to find first, and you can drop in your own JSON file at any point.
 
 ## How it works
 
@@ -52,8 +52,8 @@ cosine similarity over an in-memory array.
 That is a deliberate design choice, not a shortcut:
 
 - **Your data never leaves your machine.** Files are read by the browser and stay in the tab.
-- **No account, no database, no server.** It deploys as a static site.
-- **Nothing is shared between visitors.** Two people using it at once cannot see each other's data.
+- **No account, no database, no server process.** Just a dev server serving static files.
+- **No API keys and no paid services.** Nothing to sign up for before it works.
 - **The numbers on screen are real.** They are the model's actual output, not a simulation.
 
 ```
@@ -73,9 +73,9 @@ Your browser
 | Vector store | A JavaScript array | With a few hundred chunks, an exhaustive scan is instant. A real system would use a vector database, and the app says so |
 | 2D projection | Principal component analysis, implemented in `src/lib/vector.ts` | The two axes are the directions the chunks differ along most, so on-screen distance reflects real distance |
 
-## Running it locally
+## Running it
 
-Requires Node.js 20.19 or newer.
+Requires Node.js 20.19 or newer. Check with `node -v`.
 
 ```bash
 git clone https://github.com/PeppiLabs/chunkie.git
@@ -84,7 +84,11 @@ npm install
 npm run dev
 ```
 
-Then open the URL the terminal prints, usually http://localhost:5173.
+Then open the URL the terminal prints, usually <http://localhost:5173>.
+
+The first time you reach the Embed step, the browser downloads the embedding model, roughly 23 MB.
+That happens once and your browser caches it, so every later run starts immediately. It needs an
+internet connection for that first download only; everything after it is local.
 
 | Command | Does |
 | --- | --- |
@@ -96,28 +100,12 @@ Then open the URL the terminal prints, usually http://localhost:5173.
 
 ### About the cross origin headers
 
-`vite.config.ts` sets `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` in both dev
-and preview, matching what `render.yaml` serves in production. These make the page cross origin
-isolated, which lets the WASM runtime use its multi threaded backend.
+`vite.config.ts` sets `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` for both the
+dev server and the preview server. They make the page cross origin isolated, which is what lets the
+WASM runtime use its faster multi threaded backend.
 
-They are set locally on purpose. Headers that exist only in production are a classic way to ship a
-site that works on your machine and breaks on deploy.
-
-## Deploying
-
-The app is static, so it runs on a free Render static site. `render.yaml` is a
-[Blueprint](https://render.com/docs/blueprint-spec) that configures everything.
-
-1. Push this repository to GitHub.
-2. In the Render dashboard, choose **New** then **Blueprint**.
-3. Point it at the repository. Render reads `render.yaml` and sets up the build, the SPA rewrite,
-   the cross origin headers, and asset caching.
-4. Deploy.
-
-There are no environment variables and no secrets to configure.
-
-It works equally well on any static host. Build with `npm run build` and serve `dist/`, but do set
-the two cross origin headers, or the model falls back to a slower single threaded path.
+If you ever serve the built output some other way, without those two headers the model still runs,
+just on a slower single threaded path.
 
 ## Bringing your own transcript
 

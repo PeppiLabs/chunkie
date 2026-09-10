@@ -44,8 +44,8 @@ explaining a decision, a constraint, or a trap that is not obvious from reading 
 text, and documentation.
 
 **Keep it running in the browser.** No backend, no API keys, no analytics, no account. If a feature
-needs a server, it does not belong here. This constraint is what makes the project safe to use with
-a real transcript and free to host.
+needs a server, it does not belong here. That constraint is what makes the project safe to point at
+a real transcript: nothing you load ever leaves your machine.
 
 **Do not add a dependency without a reason worth stating.** Every package is weight a visitor
 downloads. The 2D projection is about eighty lines of plain TypeScript rather than a library, and

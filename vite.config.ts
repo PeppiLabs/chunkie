@@ -2,11 +2,14 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 /**
- * Headers that must match the ones Render serves in production.
+ * Headers that make the page cross origin isolated.
  *
- * The WASM runtime uses a multi threaded backend when the page is cross origin
- * isolated, which needs these two headers. Serving them locally as well means
- * a problem they cause shows up here rather than after a deploy.
+ * The WASM runtime uses its faster multi threaded backend only when the page
+ * is cross origin isolated, and that needs these two headers. Without them the
+ * model still runs, just on a slower single threaded path.
+ *
+ * They are set for both `dev` and `preview` so the app behaves the same
+ * whichever one you use.
  */
 const CROSS_ORIGIN_ISOLATION = {
   'Cross-Origin-Opener-Policy': 'same-origin',
