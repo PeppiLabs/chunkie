@@ -36,6 +36,10 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 
+# Local only working files. Never committed, and named generically so the
+# ignore list itself gives nothing away about where anything runs.
+/.local/
+
 # Local scratch scripts used while developing, not part of the project
 /*.mjs
 /playwright-report
