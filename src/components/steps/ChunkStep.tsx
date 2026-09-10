@@ -1,6 +1,7 @@
 import { Button } from '../common/Button';
 import { Explainer } from '../common/Explainer';
 import { Panel, PanelHeader } from '../common/Panel';
+import { StepLayout } from '../layout/StepLayout';
 import { ChunkCard } from '../viz/ChunkCard';
 import { STRATEGY_INFO } from '../../lib/chunk';
 import type { Chunk, ChunkOptions, Transcript } from '../../types';
@@ -41,8 +42,44 @@ export function ChunkStep({
   const update = (patch: Partial<ChunkOptions>) => onOptionsChange({ ...options, ...patch });
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
-      <div className="space-y-6">
+    <StepLayout
+      explainers={
+        <>
+          <Explainer question="Why cut the chat up at all?">
+            <p>
+              Search works on whole pieces. If the entire transcript were one piece, every question
+              would match it equally and you would learn nothing about where the answer is.
+            </p>
+            <p>
+              Cutting it into smaller pieces means a search can point at the exact exchange that
+              answers your question.
+            </p>
+          </Explainer>
+
+          <Explainer question="So smaller is better?">
+            <p>
+              Only up to a point. A chunk holding one line like "yes, that works" has lost the
+              question it was answering, so it matches nothing useful.
+            </p>
+            <p>
+              Chunk size is a real trade-off, and picking it is one of the main decisions in
+              building a RAG system. Try the strategies above and watch the chunks change.
+            </p>
+          </Explainer>
+
+          <Explainer question="What is the tinted text?">
+            <p>
+              In fixed windows, that is the overlap: the tail of the previous chunk, repeated at
+              the start of this one. Without it, a sentence sitting on a boundary gets split in
+              half and neither chunk carries the whole thought.
+            </p>
+          </Explainer>
+        </>
+      }
+    >
+      {/* Controls beside their result, so changing a setting and seeing what it
+          did do not need a scroll between them. */}
+      <div className="grid gap-6 lg:grid-cols-2">
         <Panel>
           <PanelHeader
             title="How should we cut it up?"
@@ -124,13 +161,14 @@ export function ChunkStep({
           </div>
         </Panel>
 
-        <Panel>
+        <Panel tone="result">
           <PanelHeader
+            tone="result"
             title={`${chunks.length} chunks`}
             hint={`${transcript.messages.length} messages, averaging ${averageLength} characters per chunk`}
           />
 
-          <div className="max-h-[34rem] space-y-3 overflow-y-auto p-5">
+          <div className="max-h-[40rem] space-y-3 overflow-y-auto p-5">
             {chunks.slice(0, MAX_VISIBLE_CHUNKS).map((chunk) => (
               <ChunkCard key={chunk.id} chunk={chunk} />
             ))}
@@ -144,41 +182,7 @@ export function ChunkStep({
           </div>
         </Panel>
       </div>
-
-      <aside className="space-y-4">
-        <Explainer question="Why cut the chat up at all?">
-          <p>
-            Search works on whole pieces. If the entire transcript were one piece, every question
-            would match it equally and you would learn nothing about where the answer is.
-          </p>
-          <p>
-            Cutting it into smaller pieces means a search can point at the exact exchange that
-            answers your question.
-          </p>
-        </Explainer>
-
-        <Explainer question="So smaller is better?">
-          <p>
-            Only up to a point. A chunk holding one line like "yes, that works" has lost the
-            question it was answering, so it matches nothing useful.
-          </p>
-          <p>
-            Chunk size is a real trade-off, and picking it is one of the main decisions in building
-            a RAG system. Try the strategies above and watch the chunks change.
-          </p>
-        </Explainer>
-
-        {options.strategy === 'fixed-window' && options.overlap > 0 && (
-          <Explainer question="What is the tinted text?">
-            <p>
-              That is the overlap: the tail of the previous chunk, repeated at the start of this
-              one. Without it, a sentence sitting on a boundary gets split in half and neither
-              chunk carries the whole thought.
-            </p>
-          </Explainer>
-        )}
-      </aside>
-    </div>
+    </StepLayout>
   );
 }
 

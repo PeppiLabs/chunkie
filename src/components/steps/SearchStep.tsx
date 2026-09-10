@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '../common/Button';
 import { Explainer } from '../common/Explainer';
 import { Panel, PanelHeader } from '../common/Panel';
+import { StepLayout } from '../layout/StepLayout';
 import { ChunkCard } from '../viz/ChunkCard';
 import { ScoreBar } from '../viz/ScoreBar';
 import { VectorMap } from '../viz/VectorMap';
@@ -47,7 +48,44 @@ export function SearchStep({
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
+    <StepLayout
+      explainers={
+        <>
+          <Explainer question="How does it decide what matches?">
+            <p>
+              Your question becomes {embedded[0]?.vector.length ?? 384} numbers, exactly like the
+              chunks did. Then every chunk gets a score for how closely its numbers point in the
+              same direction as your question's.
+            </p>
+            <p>
+              That score is called cosine similarity. A 1 means identical direction, a 0 means
+              unrelated. The highest scoring few are what gets retrieved.
+            </p>
+          </Explainer>
+
+          <Explainer question="Why not just search for words?">
+            <p>
+              Because people do not ask questions using the words in the document. Ask "how long
+              before I am reimbursed" and the best passage says "we process the refund within two
+              days of the parcel reaching our warehouse". The two share no words at all, yet it is
+              plainly the right answer.
+            </p>
+          </Explainer>
+
+          <Explainer question="Where does it fall down?">
+            <p>
+              Try asking about something the chat never covers. You will still get five results,
+              because there is always a nearest chunk. Look at the scores: low ones across the
+              board mean nothing in the document really answers you.
+            </p>
+            <p>
+              Real systems set a minimum score for exactly this reason, so a chatbot says it does
+              not know rather than confidently using an unrelated passage.
+            </p>
+          </Explainer>
+        </>
+      }
+    >
       <div className="space-y-6">
         <Panel>
           <PanelHeader
@@ -87,8 +125,9 @@ export function SearchStep({
         </Panel>
 
         {queryVector && (
-          <Panel>
+          <Panel tone="result">
             <PanelHeader
+              tone="result"
               title="Your question, as numbers"
               hint="The same model, the same 384 dimensions, so the two are directly comparable."
             />
@@ -99,35 +138,36 @@ export function SearchStep({
         )}
 
         {hits && (
-          <Panel>
-            <PanelHeader
-              title="What came back"
-              hint="Ranked by cosine similarity, the measure of how closely two vectors point the same way."
-            />
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Panel tone="result">
+              <PanelHeader
+                tone="result"
+                title="What came back"
+                hint="Ranked by cosine similarity, the measure of how closely two vectors point the same way."
+              />
 
-            <div className="space-y-3 p-5">
-              {hits.map((hit) => (
-                <ChunkCard
-                  key={hit.chunk.id}
-                  chunk={hit.chunk}
-                  rank={hit.rank}
-                  aside={<ScoreBar score={hit.score} emphasis={hit.rank === 1} />}
-                />
-              ))}
-            </div>
-          </Panel>
-        )}
+              <div className="space-y-3 p-5">
+                {hits.map((hit) => (
+                  <ChunkCard
+                    key={hit.chunk.id}
+                    chunk={hit.chunk}
+                    rank={hit.rank}
+                    aside={<ScoreBar score={hit.score} emphasis={hit.rank === 1} />}
+                  />
+                ))}
+              </div>
+            </Panel>
 
-        {hits && hits.length > 0 && (
-          <Panel>
-            <PanelHeader
-              title="Where your question landed"
-              hint="The orange marker is your question, on the same map as before."
-            />
-            <div className="p-5">
-              <VectorMap chunks={embedded} hits={hits} queryPoint={queryPoint} />
-            </div>
-          </Panel>
+            <Panel>
+              <PanelHeader
+                title="Where your question landed"
+                hint="The orange marker is your question, on the same map as before."
+              />
+              <div className="p-5">
+                <VectorMap chunks={embedded} hits={hits} queryPoint={queryPoint} />
+              </div>
+            </Panel>
+          </div>
         )}
 
         {hits && hits.length > 0 && (
@@ -164,45 +204,6 @@ QUESTION: ${query}`}
           </Panel>
         )}
       </div>
-
-      <aside className="space-y-4">
-        <Explainer question="How does it decide what matches?">
-          <p>
-            Your question becomes {embedded[0]?.vector.length ?? 384} numbers, exactly like the
-            chunks did. Then every chunk gets a score for how closely its numbers point in the same
-            direction as your question's.
-          </p>
-          <p>
-            That score is called cosine similarity. A 1 means identical direction, a 0 means
-            unrelated. The highest scoring few are what gets retrieved.
-          </p>
-        </Explainer>
-
-        <Explainer question="Why not just search for words?">
-          <p>
-            Because people do not ask questions using the words in the document. Ask "how long
-            before I am reimbursed" and the best passage says "we process the refund within two
-            days of the parcel reaching our warehouse". The two share no words at all, yet it is
-            plainly the right answer.
-          </p>
-          <p>
-            Word search fails there. Meaning based search does not, which is the whole reason RAG
-            systems embed things.
-          </p>
-        </Explainer>
-
-        <Explainer question="Where does it fall down?">
-          <p>
-            Try asking about something the chat never covers. You will still get five results,
-            because there is always a nearest chunk. Look at the scores: low ones across the board
-            mean nothing in the document really answers you.
-          </p>
-          <p>
-            Real systems set a minimum score for exactly this reason, so a chatbot says it does not
-            know rather than confidently using an unrelated passage.
-          </p>
-        </Explainer>
-      </aside>
-    </div>
+    </StepLayout>
   );
 }

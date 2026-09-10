@@ -4,6 +4,7 @@ import { EyeIcon } from '../common/EyeIcon';
 import { Explainer } from '../common/Explainer';
 import { Modal } from '../common/Modal';
 import { Panel, PanelHeader } from '../common/Panel';
+import { StepLayout } from '../layout/StepLayout';
 import { parseTranscript } from '../../lib/parse';
 import { SAMPLES, type Sample } from '../../lib/samples';
 import type { Transcript } from '../../types';
@@ -69,8 +70,41 @@ export function UploadStep({ transcript, onFile, onSample, onContinue }: UploadS
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
-      <div className="space-y-6">
+    <StepLayout
+      explainers={
+        <>
+          <Explainer question="What is RAG?">
+            <p>
+              RAG stands for retrieval augmented generation. It is how a chatbot answers questions
+              about documents it was never trained on.
+            </p>
+            <p>
+              Rather than feeding a whole archive to the model, which would be far too big, a RAG
+              system finds the handful of passages that actually relate to your question and shows
+              the model only those.
+            </p>
+          </Explainer>
+
+          <Explainer question="Why a chat transcript?">
+            <p>
+              Chats are messy in useful ways. Messages are short, people paraphrase, and the answer
+              to a question is often several lines away from the words you would search for. That
+              is exactly where keyword search struggles and meaning based search shines.
+            </p>
+          </Explainer>
+
+          <Explainer question="Where does my file go?">
+            <p>
+              Nowhere. Your file is read by your own browser and stays in this tab. There is no
+              server, no account, and no upload. Close the tab and it is gone.
+            </p>
+          </Explainer>
+        </>
+      }
+    >
+      {/* The picker and what it loaded, side by side, so choosing a transcript
+          and reading it are not separated by a scroll. */}
+      <div className="grid gap-6 lg:grid-cols-2">
         <Panel>
           <PanelHeader
             title="Start with a chat transcript"
@@ -168,9 +202,10 @@ export function UploadStep({ transcript, onFile, onSample, onContinue }: UploadS
           </div>
         </Panel>
 
-        {transcript && (
-          <Panel>
+        {transcript ? (
+          <Panel tone="result">
             <PanelHeader
+              tone="result"
               title={transcript.sourceName}
               hint={
                 `${transcript.messages.length} messages from ${transcript.speakers.length} people` +
@@ -183,7 +218,7 @@ export function UploadStep({ transcript, onFile, onSample, onContinue }: UploadS
               aside={<Button onClick={onContinue}>Chunk it</Button>}
             />
 
-            <div className="max-h-[26rem] space-y-3 overflow-y-auto p-5">
+            <div className="max-h-[34rem] space-y-3 overflow-y-auto p-5">
               {transcript.messages.slice(0, MAX_VISIBLE_MESSAGES).map((message) => (
                 <div key={message.id} className="flex gap-3">
                   <span className="w-24 shrink-0 truncate pt-0.5 text-xs font-medium text-ink-500">
@@ -203,41 +238,18 @@ export function UploadStep({ transcript, onFile, onSample, onContinue }: UploadS
               )}
             </div>
           </Panel>
+        ) : (
+          <Panel
+            tone="result"
+            className="flex min-h-[18rem] items-center justify-center p-8 text-center"
+          >
+            <p className="max-w-xs text-sm leading-relaxed text-ink-600">
+              Whichever transcript you pick appears here, exactly as the pipeline sees it, before
+              anything is done to it.
+            </p>
+          </Panel>
         )}
       </div>
-
-      <aside className="space-y-4">
-        <Explainer question="What is RAG?">
-          <p>
-            RAG stands for retrieval augmented generation. It is how a chatbot answers questions
-            about documents it was never trained on.
-          </p>
-          <p>
-            Rather than feeding a whole archive to the model, which would be far too big, a RAG
-            system finds the handful of passages that actually relate to your question and shows
-            the model only those.
-          </p>
-          <p>
-            This site walks through the four things that have to happen for that to work, using a
-            chat transcript as the document.
-          </p>
-        </Explainer>
-
-        <Explainer question="Why a chat transcript?">
-          <p>
-            Chats are messy in useful ways. Messages are short, people paraphrase, and the answer
-            to a question is often several lines away from the words you would search for. That is
-            exactly where keyword search struggles and meaning based search shines.
-          </p>
-        </Explainer>
-
-        <Explainer question="Where does my file go?">
-          <p>
-            Nowhere. Your file is read by your own browser and stays in this tab. There is no
-            server, no account, and no upload. Close the tab and it is gone.
-          </p>
-        </Explainer>
-      </aside>
 
       {preview && (
         <Modal
@@ -285,6 +297,6 @@ export function UploadStep({ transcript, onFile, onSample, onContinue }: UploadS
           </div>
         </Modal>
       )}
-    </div>
+    </StepLayout>
   );
 }
