@@ -1,8 +1,11 @@
 import { useRef, useState } from 'react';
 import { Button } from '../common/Button';
+import { EyeIcon } from '../common/EyeIcon';
 import { Explainer } from '../common/Explainer';
+import { Modal } from '../common/Modal';
 import { Panel, PanelHeader } from '../common/Panel';
-import { SAMPLES } from '../../lib/samples';
+import { parseTranscript } from '../../lib/parse';
+import { SAMPLES, type Sample } from '../../lib/samples';
 import type { Transcript } from '../../types';
 
 interface UploadStepProps {
@@ -25,6 +28,38 @@ export function UploadStep({ transcript, onFile, onSample, onContinue }: UploadS
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  /** The sample being previewed, and its contents once they have arrived. */
+  const [preview, setPreview] = useState<Sample | null>(null);
+  const [previewTranscript, setPreviewTranscript] = useState<Transcript | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+
+  /**
+   * Opens the read only preview.
+   *
+   * Deliberately separate from loading: looking at what is in a transcript
+   * should not change which one is selected, or throw away work already done
+   * further along the pipeline.
+   */
+  const openPreview = async (sample: Sample) => {
+    setPreview(sample);
+    setPreviewTranscript(null);
+    setPreviewError(null);
+
+    try {
+      const response = await fetch(sample.path);
+      if (!response.ok) throw new Error(`Could not load that transcript (${response.status}).`);
+      setPreviewTranscript(parseTranscript(sample.label, await response.text()));
+    } catch (cause) {
+      setPreviewError(cause instanceof Error ? cause.message : 'That transcript could not be read.');
+    }
+  };
+
+  const closePreview = () => {
+    setPreview(null);
+    setPreviewTranscript(null);
+    setPreviewError(null);
+  };
+
   const handleDrop = (event: React.DragEvent) => {
     event.preventDefault();
     setDragging(false);
@@ -43,16 +78,50 @@ export function UploadStep({ transcript, onFile, onSample, onContinue }: UploadS
           />
 
           <div className="space-y-3 p-5">
-            {SAMPLES.map((sample) => (
-              <button
-                key={sample.path}
-                onClick={() => onSample(sample.path, sample.label)}
-                className="block w-full rounded-xl border border-ink-200 bg-white p-4 text-left transition-colors hover:border-brand-300 hover:bg-brand-50/50"
-              >
-                <span className="block text-sm font-semibold text-ink-900">{sample.label}</span>
-                <span className="mt-0.5 block text-sm text-ink-500">{sample.blurb}</span>
-              </button>
-            ))}
+            {SAMPLES.map((sample) => {
+              // The loaded transcript is named after the sample it came from,
+              // so this is what keeps the tile looking chosen afterwards.
+              const selected = transcript?.sourceName === sample.label;
+
+              return (
+                <div
+                  key={sample.path}
+                  // Two sibling buttons rather than one inside the other: a
+                  // button nested in a button is invalid, and the browser
+                  // stops firing the inner one's click.
+                  className={`flex items-stretch gap-1 rounded-xl border p-1 transition-colors ${
+                    selected
+                      ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-200'
+                      : 'border-ink-200 bg-white hover:border-brand-300 hover:bg-brand-50/50'
+                  }`}
+                >
+                  <button
+                    onClick={() => onSample(sample.path, sample.label)}
+                    aria-pressed={selected}
+                    className="min-w-0 flex-1 rounded-lg p-3 text-left"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-ink-900">{sample.label}</span>
+                      {selected && (
+                        <span className="shrink-0 rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-medium text-white">
+                          Loaded
+                        </span>
+                      )}
+                    </span>
+                    <span className="mt-0.5 block text-sm text-ink-500">{sample.blurb}</span>
+                  </button>
+
+                  <button
+                    onClick={() => openPreview(sample)}
+                    aria-label={`Read the ${sample.label} transcript`}
+                    title="Read the whole chat"
+                    className="shrink-0 self-center rounded-lg p-3 text-ink-500 transition-colors hover:bg-white hover:text-brand-700"
+                  >
+                    <EyeIcon />
+                  </button>
+                </div>
+              );
+            })}
           </div>
 
           <div className="border-t border-ink-100 p-5">
@@ -169,6 +238,53 @@ export function UploadStep({ transcript, onFile, onSample, onContinue }: UploadS
           </p>
         </Explainer>
       </aside>
+
+      {preview && (
+        <Modal
+          title={preview.label}
+          subtitle={
+            previewTranscript
+              ? `${previewTranscript.messages.length} messages from ${previewTranscript.speakers.length} people`
+              : 'Loading'
+          }
+          onClose={closePreview}
+        >
+          {previewError && <p className="py-8 text-center text-sm text-red-700">{previewError}</p>}
+
+          {!previewError && !previewTranscript && (
+            <p className="py-8 text-center text-sm text-ink-500">Loading the transcript</p>
+          )}
+
+          {previewTranscript && (
+            <div className="space-y-3">
+              {previewTranscript.messages.map((message) => (
+                <div key={message.id} className="flex gap-3">
+                  <span className="w-24 shrink-0 truncate pt-0.5 text-xs font-medium text-ink-500">
+                    {message.speaker}
+                  </span>
+                  <p className="wrap-anywhere min-w-0 flex-1 text-sm leading-relaxed text-ink-800">
+                    {message.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-6 flex justify-end gap-2 border-t border-ink-100 pt-4">
+            <Button variant="secondary" onClick={closePreview}>
+              Close
+            </Button>
+            <Button
+              onClick={() => {
+                onSample(preview.path, preview.label);
+                closePreview();
+              }}
+            >
+              Use this transcript
+            </Button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
