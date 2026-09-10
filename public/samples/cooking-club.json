@@ -1,36 +1,580 @@
 {
-  "title": "Cooking club group chat",
-  "messages": [
-    { "speaker": "Dev", "timestamp": "2026-05-08T18:02:00Z", "text": "Made the mushroom risotto tonight and it came out gluey. What did I do wrong?" },
-    { "speaker": "Nora", "timestamp": "2026-05-08T18:05:00Z", "text": "Did you rinse the rice first? Washing arborio strips the starch you actually want." },
-    { "speaker": "Dev", "timestamp": "2026-05-08T18:06:00Z", "text": "I did rinse it. Also I dumped all the stock in at once because I was in a hurry." },
-    { "speaker": "Nora", "timestamp": "2026-05-08T18:08:00Z", "text": "There it is. Add the stock a ladle at a time and stir. That is what releases starch slowly and gives you creaminess without glue." },
-    { "speaker": "Sam", "timestamp": "2026-05-08T18:10:00Z", "text": "Also take it off the heat while the grains still have a little bite. It keeps cooking in the pan." },
-    { "speaker": "Dev", "timestamp": "2026-05-08T18:11:00Z", "text": "Noted. How much stock for 300g of rice?" },
-    { "speaker": "Nora", "timestamp": "2026-05-08T18:12:30Z", "text": "Roughly a litre, but go by texture rather than the number. Some days the rice drinks more." },
-    { "speaker": "Sam", "timestamp": "2026-05-08T18:14:00Z", "text": "On a different note, my bread keeps coming out dense. Crumb is tight and it barely rises." },
-    { "speaker": "Nora", "timestamp": "2026-05-08T18:15:30Z", "text": "How warm is your kitchen? Dough proves painfully slowly under about 20 degrees." },
-    { "speaker": "Sam", "timestamp": "2026-05-08T18:16:00Z", "text": "Maybe 17 at the moment, the heating has been off." },
-    { "speaker": "Nora", "timestamp": "2026-05-08T18:17:30Z", "text": "Then give it longer, not more yeast. Two hours at 17 degrees is nowhere near two hours at 24." },
-    { "speaker": "Dev", "timestamp": "2026-05-08T18:18:30Z", "text": "The oven with just the light on is a decent proving box, about 26 degrees." },
-    { "speaker": "Sam", "timestamp": "2026-05-08T18:19:30Z", "text": "That is a good trick, I will try it tomorrow." },
-    { "speaker": "Priya", "timestamp": "2026-05-08T18:22:00Z", "text": "Can someone settle an argument. Do you salt pasta water before or after it boils?" },
-    { "speaker": "Nora", "timestamp": "2026-05-08T18:23:00Z", "text": "It makes no real difference to the pasta. Salting after it boils just avoids pitting the bottom of the pan." },
-    { "speaker": "Sam", "timestamp": "2026-05-08T18:24:00Z", "text": "The amount matters far more than the timing. It should taste properly seasoned, not faintly salty." },
-    { "speaker": "Priya", "timestamp": "2026-05-08T18:25:00Z", "text": "How much is properly seasoned in grams?" },
-    { "speaker": "Sam", "timestamp": "2026-05-08T18:26:00Z", "text": "About 10g per litre of water. Any less and the pasta is bland no matter what sauce you put on it." },
-    { "speaker": "Dev", "timestamp": "2026-05-08T18:28:00Z", "text": "What are we all cooking for the meetup on Saturday?" },
-    { "speaker": "Priya", "timestamp": "2026-05-08T18:29:00Z", "text": "I will bring a dal, it travels well and reheats without going strange." },
-    { "speaker": "Nora", "timestamp": "2026-05-08T18:30:00Z", "text": "I will do a tray of roasted vegetables and a big salad. Two people coming are vegetarian." },
-    { "speaker": "Sam", "timestamp": "2026-05-08T18:31:00Z", "text": "Then I will handle bread and something sweet. Sourdough if the proving goes better this time." },
-    { "speaker": "Dev", "timestamp": "2026-05-08T18:32:00Z", "text": "I can bring the risotto if I have redeemed myself by then." },
-    { "speaker": "Nora", "timestamp": "2026-05-08T18:33:00Z", "text": "Risotto does not survive a car journey. Bring something that likes sitting around instead." },
-    { "speaker": "Dev", "timestamp": "2026-05-08T18:34:00Z", "text": "Fair. A slow cooked ragu then, that only improves overnight." },
-    { "speaker": "Priya", "timestamp": "2026-05-08T18:35:00Z", "text": "Does anyone have a nut allergy coming? I want to know before I put cashews in anything." },
-    { "speaker": "Nora", "timestamp": "2026-05-08T18:36:30Z", "text": "One of Sam's friends cannot have peanuts. Tree nuts are fine but label the dish anyway." },
-    { "speaker": "Sam", "timestamp": "2026-05-08T18:37:30Z", "text": "Confirmed, peanuts only. I will bring cards so every dish says what is in it." },
-    { "speaker": "Priya", "timestamp": "2026-05-08T18:38:30Z", "text": "Perfect. What time are we starting?" },
-    { "speaker": "Nora", "timestamp": "2026-05-08T18:39:00Z", "text": "Doors at six, eating around seven. Come earlier if you need oven space." },
-    { "speaker": "Dev", "timestamp": "2026-05-08T18:40:00Z", "text": "I will need the oven for twenty minutes to reheat, so I will get there at half five." }
-  ]
+ "title": "Cooking club group chat",
+ "messages": [
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-08T18:11:59Z",
+   "text": "Made the mushroom risotto tonight and it came out gluey. What did I do wrong?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T18:22:33Z",
+   "text": "Did you rinse the rice first? Washing arborio strips the starch you actually want."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-08T18:32:53Z",
+   "text": "I did rinse it. Also I dumped all the stock in at once because I was in a hurry."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T18:35:36Z",
+   "text": "There it is. Add the stock a ladle at a time and stir. That is what releases starch slowly and gives you creaminess without glue."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-08T18:47:55Z",
+   "text": "Also take it off the heat while the grains still have a little bite. It keeps cooking in the pan."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-08T18:52:39Z",
+   "text": "How much stock for 300g of rice?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T19:04:09Z",
+   "text": "Roughly a litre, but go by texture rather than the number. Some days the rice drinks more."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-08T19:14:29Z",
+   "text": "Second attempt was much better. Still not restaurant level but I would serve it."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T19:26:13Z",
+   "text": "That is the right bar. Restaurant level uses about twice the butter you think is reasonable."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-08T19:32:35Z",
+   "text": "And a stock that has been going for six hours."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-08T19:38:43Z",
+   "text": "So it is not me, it is the fat and the time."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T19:41:07Z",
+   "text": "Mostly, yes."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-08T19:50:03Z",
+   "text": "My bread keeps coming out dense. Crumb is tight and it barely rises."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T20:00:16Z",
+   "text": "How warm is your kitchen? Dough proves painfully slowly under about 20 degrees."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-08T20:06:59Z",
+   "text": "Maybe 17 at the moment, the heating has been off."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T20:18:50Z",
+   "text": "Then give it longer, not more yeast. Two hours at 17 degrees is nowhere near two hours at 24."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-08T20:28:28Z",
+   "text": "The oven with just the light on is a decent proving box, about 26 degrees."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-08T20:34:43Z",
+   "text": "That is a good trick, I will try it tomorrow."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-08T20:46:48Z",
+   "text": "Proved it in the oven with the light on and it doubled in ninety minutes instead of not at all."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T20:55:16Z",
+   "text": "There you go. Nothing was wrong with your recipe, only the room."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-08T21:03:51Z",
+   "text": "How do I know when it is properly proved rather than just bigger?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T21:15:56Z",
+   "text": "Press it with a floured finger. If the dent springs back slowly and only part way, it is ready."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-08T21:21:01Z",
+   "text": "And if it springs back immediately?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T21:30:11Z",
+   "text": "Needs longer. If it does not spring back at all you have gone too far."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-08T21:35:02Z",
+   "text": "What happens if you overprove it?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T21:45:43Z",
+   "text": "It collapses in the oven and you get a flat loaf with a dense streak near the base."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-08T21:52:12Z",
+   "text": "That is exactly what happened to me in January."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T22:01:15Z",
+   "text": "Then you now know both failure modes, which is most of the way there."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-08T22:11:42Z",
+   "text": "Can someone settle an argument. Do you salt pasta water before or after it boils?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T22:25:11Z",
+   "text": "It makes no real difference to the pasta. Salting after it boils just avoids pitting the bottom of the pan."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-08T22:37:37Z",
+   "text": "The amount matters far more than the timing. It should taste properly seasoned, not faintly salty."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-08T22:43:10Z",
+   "text": "How much is properly seasoned in grams?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-08T22:55:29Z",
+   "text": "About 10g per litre of water. Any less and the pasta is bland no matter what sauce you put on it."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-08T23:01:16Z",
+   "text": "That is much more than I have been using."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T23:09:51Z",
+   "text": "It usually is. Most people use about a third of what they should."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-08T23:17:51Z",
+   "text": "Does the pasta actually absorb it, or does it just wash off?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T23:29:49Z",
+   "text": "It absorbs it while it cooks. That is why seasoning the sauce harder does not fix bland pasta."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-08T23:37:49Z",
+   "text": "Tried it properly salted and the difference is embarrassing."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-08T23:44:32Z",
+   "text": "It is the single cheapest improvement in cooking."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-08T23:48:48Z",
+   "text": "What about oil in the water?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-08T23:59:36Z",
+   "text": "Pointless. It floats on top and the only thing it does is stop sauce clinging later."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T00:04:27Z",
+   "text": "I have been doing that for years."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T00:10:35Z",
+   "text": "Most of us were taught it. It is just wrong."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T00:17:32Z",
+   "text": "What are we all cooking for the meetup on Saturday?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T00:26:42Z",
+   "text": "I will bring a dal, it travels well and reheats without going strange."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T00:38:05Z",
+   "text": "I will do a tray of roasted vegetables and a big salad. Two people coming are vegetarian."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T00:49:56Z",
+   "text": "Then I will handle bread and something sweet. Sourdough if the proving goes better this time."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T00:57:42Z",
+   "text": "I can bring the risotto if I have redeemed myself by then."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T01:09:12Z",
+   "text": "Risotto does not survive a car journey. Bring something that likes sitting around instead."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T01:17:12Z",
+   "text": "Fair. A slow cooked ragu then, that only improves overnight."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T01:28:21Z",
+   "text": "Does anyone have a nut allergy coming? I want to know before I put cashews in anything."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T01:39:30Z",
+   "text": "One of Sam's friends cannot have peanuts. Tree nuts are fine but label the dish anyway."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T01:49:29Z",
+   "text": "Confirmed, peanuts only. I will bring cards so every dish says what is in it."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T01:54:34Z",
+   "text": "Perfect. What time are we starting?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T02:03:51Z",
+   "text": "Doors at six, eating around seven. Come earlier if you need oven space."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T02:14:39Z",
+   "text": "I will need the oven for twenty minutes to reheat, so I will get there at half five."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T02:23:14Z",
+   "text": "I need it hot for the bread, so I will come at five and go first."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T02:34:09Z",
+   "text": "Then the order is Sam at five, Dev at half five, everything else is cold or stovetop."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T02:42:16Z",
+   "text": "Should someone bring plates? Eleven is a lot for one kitchen."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T02:49:55Z",
+   "text": "I have eight. If two people bring three each we are fine."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T02:54:39Z",
+   "text": "I will bring plates and cutlery."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T02:58:34Z",
+   "text": "And I will bring glasses."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T03:07:23Z",
+   "text": "That went well. Nothing was cold and nobody had to eat standing up."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T03:16:54Z",
+   "text": "The bread was the best I have made. Twelve hour cold prove in the fridge."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T03:21:45Z",
+   "text": "That is what made the difference?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T03:31:44Z",
+   "text": "I think so. The flavour was completely different, much more sour and complex."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T03:41:29Z",
+   "text": "Cold proving does that. The yeast slows down but the bacteria keep working."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T03:46:41Z",
+   "text": "Is that the same thing as sourdough?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T03:48:49Z",
+   "text": "Related. Sourdough uses wild yeast and bacteria together from the start. Cold proving a normal dough gets you partway there."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T03:55:04Z",
+   "text": "Much less commitment too. No starter to feed."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T04:00:02Z",
+   "text": "How much work is a starter really?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T04:10:29Z",
+   "text": "Once it is established, five minutes every few days if you keep it in the fridge."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T04:22:20Z",
+   "text": "It is the establishing that is the work. Two weeks of feeding before it does anything useful."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T04:27:25Z",
+   "text": "Would you do it again from scratch?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T04:33:47Z",
+   "text": "Yes, but I would not pretend it is low effort."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T04:41:54Z",
+   "text": "My dal was too thin on Saturday. How do I fix that next time?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T04:49:47Z",
+   "text": "Less water at the start is easier than reducing at the end."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T04:52:25Z",
+   "text": "How much less?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T05:05:19Z",
+   "text": "Start at three parts water to one part lentils and add more if it needs it. You cannot take water out."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T05:17:03Z",
+   "text": "You can also blend a ladleful and stir it back in. Thickens it without changing the flavour."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T05:20:30Z",
+   "text": "That is a good trick."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T05:25:28Z",
+   "text": "Does the type of lentil change it?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T05:35:41Z",
+   "text": "Very much. Red lentils collapse into a puree, brown and green hold their shape."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T05:41:00Z",
+   "text": "I used red, and it did go quite soft."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T05:49:49Z",
+   "text": "Then it was doing what it was meant to. It just needed less liquid."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T05:57:35Z",
+   "text": "Stupid question. Why do my onions never go properly brown?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T06:01:58Z",
+   "text": "How long are you giving them?"
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T06:05:04Z",
+   "text": "Ten minutes maybe."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T06:15:45Z",
+   "text": "There is your answer. Properly caramelised onions take forty five minutes at least."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T06:20:43Z",
+   "text": "Forty five? Every recipe says ten."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T06:31:45Z",
+   "text": "Every recipe is lying. Ten minutes gets you soft and translucent, not brown and sweet."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T06:42:47Z",
+   "text": "Add a pinch of salt early to draw water out and it goes a little faster, but not much."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T06:47:24Z",
+   "text": "Can I rush it with higher heat?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T06:59:15Z",
+   "text": "No. Higher heat burns the outside before the sugars develop. Low and slow is the whole trick."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T07:10:45Z",
+   "text": "Forty minutes later and they are basically jam. This is a completely different ingredient."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T07:18:10Z",
+   "text": "Now you know why French onion soup takes all afternoon."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T07:28:23Z",
+   "text": "What is everyone doing for the next meetup? Same format or something different?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T07:35:20Z",
+   "text": "Could we each cook one thing from the same country?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T07:42:59Z",
+   "text": "I like that. It stops us all bringing roasted vegetables."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T07:45:37Z",
+   "text": "Which country?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T07:53:02Z",
+   "text": "Somewhere none of us cook from often. Georgia? Vietnam?"
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T08:04:25Z",
+   "text": "Vietnam. Lots of it travels well and half of it is meant to be eaten at room temperature."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T08:11:57Z",
+   "text": "I am in. I will do the herb salad and the dipping sauce."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T08:21:28Z",
+   "text": "I will attempt the caramelised pork. It is the one I keep meaning to try."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T08:29:42Z",
+   "text": "Then I will do banh mi, which means I get to make bread again."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T08:35:50Z",
+   "text": "Predictable and welcome. I will do the soup."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T08:41:51Z",
+   "text": "Do we need a rice cooker? I do not own one."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T08:48:20Z",
+   "text": "I have one and I will bring it. It saves a hob."
+  },
+  {
+   "speaker": "Dev",
+   "timestamp": "2026-05-09T08:52:22Z",
+   "text": "How many are we this time?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T08:55:56Z",
+   "text": "Nine confirmed so far."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T08:59:37Z",
+   "text": "Same allergy situation?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T09:09:50Z",
+   "text": "Peanuts again, and this cuisine uses them constantly, so we need to be careful."
+  },
+  {
+   "speaker": "Nora",
+   "timestamp": "2026-05-09T09:19:49Z",
+   "text": "Then label everything and keep one peanut free version of the sauce separate."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-09T09:27:42Z",
+   "text": "I will make two batches and keep them apart from the start."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-09T09:38:44Z",
+   "text": "That is the safest way. Cross contamination is the real risk, not the ingredient list."
+  }
+ ]
 }

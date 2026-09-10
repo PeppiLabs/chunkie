@@ -24,11 +24,25 @@ const REQUEST_TIMEOUT_MS = 5 * 60 * 1000;
 
 type ProgressListener = (progress: EmbedProgress) => void;
 
+/** Called as each batch of vectors arrives, before the whole run finishes. */
+export type BatchListener = (batch: {
+  /** Index of the first vector in this batch. */
+  start: number;
+  vectors: Float32Array[];
+  /** How many vectors are finished across the whole request. */
+  done: number;
+  total: number;
+}) => void;
+
 interface PendingRequest {
   resolve: (vectors: Float32Array[]) => void;
   reject: (error: Error) => void;
   /** Progress for this request only, so concurrent runs cannot cross wires. */
   onProgress?: ProgressListener;
+  /** Optional per batch callback, used to draw vectors as they arrive. */
+  onBatch?: BatchListener;
+  /** Vectors gathered so far, in order. */
+  collected: Float32Array[];
   timer: ReturnType<typeof setTimeout>;
 }
 
@@ -68,7 +82,11 @@ export class Embedder {
   }
 
   /** Embeds a list of texts and resolves with one vector per text. */
-  embed(texts: string[], onProgress?: ProgressListener): Promise<Float32Array[]> {
+  embed(
+    texts: string[],
+    onProgress?: ProgressListener,
+    onBatch?: BatchListener,
+  ): Promise<Float32Array[]> {
     if (texts.length === 0) return Promise.resolve([]);
 
     const requestId = this.nextRequestId++;
@@ -83,7 +101,14 @@ export class Embedder {
         );
       }, REQUEST_TIMEOUT_MS);
 
-      this.pending.set(requestId, { resolve, reject, onProgress, timer });
+      this.pending.set(requestId, {
+        resolve,
+        reject,
+        onProgress,
+        onBatch,
+        collected: [],
+        timer,
+      });
       this.worker.postMessage({ type: 'embed', requestId, texts });
     });
   }
@@ -127,32 +152,41 @@ export class Embedder {
         this.emitModel({ phase: 'ready', ratio: 1, label: 'Model ready' });
         break;
 
-      case 'embed-progress': {
+      case 'embed-batch': {
         // Routed to the request that asked for it, never broadcast. Two runs
         // can overlap, and one reporting "1 of 1" over the other's bar reads
         // as finished when it is not.
         const request = this.pending.get(message.requestId);
-        const ratio = message.total === 0 ? 1 : message.done / message.total;
-        request?.onProgress?.({
-          phase: 'embedding',
-          ratio,
-          label: `Embedded ${message.done} of ${message.total} chunks`,
-        });
-        break;
-      }
-
-      case 'embed-result': {
-        const request = this.settle(message.requestId);
         if (!request) break;
 
         const flat = new Float32Array(message.buffer);
         const vectors: Float32Array[] = [];
         for (let i = 0; i < message.count; i++) {
-          vectors.push(flat.slice(i * message.dims, (i + 1) * message.dims));
+          vectors.push(flat.subarray(i * message.dims, (i + 1) * message.dims));
         }
 
+        for (let i = 0; i < vectors.length; i++) {
+          request.collected[message.start + i] = vectors[i];
+        }
+
+        const done = message.start + message.count;
+        const ratio = message.total === 0 ? 1 : done / message.total;
+
+        request.onProgress?.({
+          phase: 'embedding',
+          ratio,
+          label: `Embedded ${done} of ${message.total} chunks`,
+        });
+        request.onBatch?.({ start: message.start, vectors, done, total: message.total });
+        break;
+      }
+
+      case 'embed-done': {
+        const request = this.settle(message.requestId);
+        if (!request) break;
+
         request.onProgress?.({ phase: 'ready', ratio: 1, label: 'Vectors ready' });
-        request.resolve(vectors);
+        request.resolve(request.collected);
         break;
       }
 

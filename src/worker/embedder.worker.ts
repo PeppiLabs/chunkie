@@ -24,8 +24,18 @@ type Incoming =
 type Outgoing =
   | { type: 'model-progress'; ratio: number; label: string }
   | { type: 'model-ready' }
-  | { type: 'embed-progress'; requestId: number; done: number; total: number }
-  | { type: 'embed-result'; requestId: number; buffer: ArrayBuffer; count: number; dims: number }
+  // Vectors are streamed a batch at a time rather than held until the end, so
+  // the interface can show them arriving instead of a bar with nothing behind it.
+  | {
+      type: 'embed-batch';
+      requestId: number;
+      start: number;
+      count: number;
+      total: number;
+      dims: number;
+      buffer: ArrayBuffer;
+    }
+  | { type: 'embed-done'; requestId: number }
   | { type: 'error'; requestId: number | null; message: string };
 
 const post = (message: Outgoing, transfer: Transferable[] = []) =>
@@ -83,31 +93,38 @@ function loadModel(): Promise<FeatureExtractionPipeline> {
   return extractor;
 }
 
-/** Embeds every text, reporting progress after each batch. */
+/** Embeds every text, sending each batch back as soon as it is ready. */
 async function embedAll(requestId: number, texts: string[]) {
   const model = await loadModel();
   post({ type: 'model-ready' });
 
   const dims = 384;
-  const flat = new Float32Array(texts.length * dims);
-  let written = 0;
 
   for (let start = 0; start < texts.length; start += BATCH_SIZE) {
     const batch = texts.slice(start, start + BATCH_SIZE);
     const output = await model(batch, { pooling: 'mean', normalize: true });
     const values = output.data as Float32Array;
 
-    flat.set(values.subarray(0, batch.length * dims), written * dims);
-    written += batch.length;
+    // Copy this batch into a buffer of its own so it can be transferred.
+    const chunkOfVectors = new Float32Array(batch.length * dims);
+    chunkOfVectors.set(values.subarray(0, batch.length * dims));
 
-    post({ type: 'embed-progress', requestId, done: written, total: texts.length });
+    post(
+      {
+        type: 'embed-batch',
+        requestId,
+        start,
+        count: batch.length,
+        total: texts.length,
+        dims,
+        buffer: chunkOfVectors.buffer,
+      },
+      // Hand the buffer over rather than copying it across the boundary.
+      [chunkOfVectors.buffer],
+    );
   }
 
-  // Hand the buffer over rather than copying it back across the boundary.
-  post(
-    { type: 'embed-result', requestId, buffer: flat.buffer, count: texts.length, dims },
-    [flat.buffer],
-  );
+  post({ type: 'embed-done', requestId });
 }
 
 self.onmessage = async (event: MessageEvent<Incoming>) => {

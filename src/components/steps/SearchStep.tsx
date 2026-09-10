@@ -15,7 +15,6 @@ interface SearchStepProps {
   query: string;
   onQueryChange: (query: string) => void;
   onSearch: (query: string) => void;
-  searching: boolean;
   hits: SearchHit[] | null;
   queryVector: Float32Array | null;
   queryPoint: { x: number; y: number } | null;
@@ -28,7 +27,6 @@ export function SearchStep({
   query,
   onQueryChange,
   onSearch,
-  searching,
   hits,
   queryVector,
   queryPoint,
@@ -37,14 +35,17 @@ export function SearchStep({
   const [expanded, setExpanded] = useState(false);
   const suggestions = questionsFor(sourceName);
 
-  const submit = (event: React.FormEvent) => {
-    event.preventDefault();
-    onSearch(query);
-  };
-
-  const runSuggestion = (suggestion: string) => {
-    onQueryChange(suggestion);
-    onSearch(suggestion);
+  /**
+   * Every keystroke runs a real search.
+   *
+   * Embedding one short query takes a couple of milliseconds and scoring every
+   * chunk takes under one, so there is no reason to make anyone press a
+   * button and no reason to debounce. Watching the ranking rearrange as you
+   * type is the clearest demonstration of what the model is doing.
+   */
+  const type = (value: string) => {
+    onQueryChange(value);
+    onSearch(value);
   };
 
   return (
@@ -90,32 +91,55 @@ export function SearchStep({
         <Panel>
           <PanelHeader
             title="Ask the transcript something"
-            hint={`Your question gets the same treatment as the chunks did, then we compare it against all ${embedded.length} of them.`}
+            hint={`Every character you type is embedded and scored against all ${embedded.length} chunks. There is no search button because there does not need to be.`}
           />
 
           <div className="space-y-4 p-5">
-            <form onSubmit={submit} className="flex gap-2">
+            <div className="relative">
               <input
                 type="search"
                 value={query}
-                onChange={(event) => onQueryChange(event.target.value)}
-                placeholder="Ask in your own words, not keywords"
+                onChange={(event) => type(event.target.value)}
+                placeholder="Start typing. It searches as you go."
                 aria-label="Your question"
-                className="h-11 min-w-0 flex-1 rounded-xl border border-ink-200 bg-white px-4 text-sm text-ink-900 placeholder:text-ink-500 focus:border-brand-400"
+                autoFocus
+                className="h-12 w-full rounded-xl border border-ink-200 bg-white pr-28 pl-4 text-base text-ink-900 placeholder:text-ink-500 focus:border-brand-400"
               />
-              <Button type="submit" disabled={searching || !query.trim()} className="h-11 shrink-0">
-                {searching ? 'Searching' : 'Search'}
-              </Button>
-            </form>
+
+              {query.trim() && (
+                <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-xs text-ink-500">
+                  {hits ? `${hits.length} of ${embedded.length}` : 'thinking'}
+                </span>
+              )}
+            </div>
+
+            {/* The query vector, right where it is being typed, so the numbers
+                visibly change with the words rather than sitting in a panel of
+                their own further down the page. */}
+            <div>
+              <div className="mb-1.5 flex items-baseline justify-between">
+                <span className="text-xs font-medium text-ink-700">
+                  Your question, as {embedded[0]?.vector.length ?? 384} numbers
+                </span>
+                <span className="text-xs text-ink-500">
+                  {queryVector ? 'updates with every character' : 'appears as you type'}
+                </span>
+              </div>
+
+              {queryVector ? (
+                <VectorStrip vector={queryVector} height={28} />
+              ) : (
+                <div className="h-7 rounded-lg border border-dashed border-ink-200" />
+              )}
+            </div>
 
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-ink-500">Try:</span>
               {suggestions.map((suggestion) => (
                 <button
                   key={suggestion}
-                  onClick={() => runSuggestion(suggestion)}
-                  disabled={searching}
-                  className="rounded-full border border-ink-200 bg-white px-3 py-1 text-xs text-ink-700 transition-colors hover:border-brand-300 hover:bg-brand-50 disabled:opacity-50"
+                  onClick={() => type(suggestion)}
+                  className="rounded-full border border-ink-200 bg-white px-3 py-1 text-xs text-ink-700 transition-colors hover:border-brand-300 hover:bg-brand-50"
                 >
                   {suggestion}
                 </button>
@@ -123,19 +147,6 @@ export function SearchStep({
             </div>
           </div>
         </Panel>
-
-        {queryVector && (
-          <Panel tone="result">
-            <PanelHeader
-              tone="result"
-              title="Your question, as numbers"
-              hint="The same model, the same 384 dimensions, so the two are directly comparable."
-            />
-            <div className="p-5">
-              <VectorStrip vector={queryVector} height={40} />
-            </div>
-          </Panel>
-        )}
 
         {hits && (
           <div className="grid gap-6 lg:grid-cols-2">

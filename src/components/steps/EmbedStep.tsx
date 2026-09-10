@@ -13,6 +13,8 @@ interface EmbedStepProps {
   embedded: EmbeddedChunk[] | null;
   /** True only while a run the visitor started is in flight. */
   embedding: boolean;
+  /** Vectors that have arrived so far in the current run. */
+  streamed: Float32Array[];
   progress: EmbedProgress;
   onRun: () => void;
   onContinue: () => void;
@@ -25,6 +27,7 @@ export function EmbedStep({
   chunks,
   embedded,
   embedding,
+  streamed,
   progress,
   onRun,
   onContinue,
@@ -80,20 +83,14 @@ export function EmbedStep({
             what it means. The model runs inside this tab, so the first run downloads it once.
           </p>
 
-          {/* The label stays fixed while running. Mirroring the progress text
-              here renamed the control on every batch, and a control that keeps
-              being renamed keeps being re-announced. Progress lives in the bar
-              below, which is where a screen reader reads it once. */}
           <Button size="lg" className="mt-6" onClick={onRun} disabled={embedding}>
             {embedding ? 'Working' : 'Generate the vectors'}
           </Button>
 
-          {warming && (
-            <p className="mt-3 text-xs text-ink-500">{progress.label}</p>
-          )}
+          {warming && <p className="mt-3 text-xs text-ink-500">{progress.label}</p>}
 
           {embedding && (
-            <div className="mx-auto mt-6 max-w-md">
+            <div className="mx-auto mt-7 max-w-2xl">
               <div
                 role="progressbar"
                 aria-valuemin={0}
@@ -103,11 +100,35 @@ export function EmbedStep({
                 className="h-2 overflow-hidden rounded-full bg-ink-100"
               >
                 <div
-                  className="h-full rounded-full bg-brand-600 transition-[width] duration-300"
+                  className="h-full rounded-full bg-brand-600 transition-[width] duration-200"
                   style={{ width: `${Math.round(progress.ratio * 100)}%` }}
                 />
               </div>
-              <p className="mt-2 text-xs text-ink-500">{progress.label}</p>
+
+              <div className="mt-2 flex items-baseline justify-between text-xs text-ink-500">
+                <span>{progress.label}</span>
+                <span className="font-mono tabular-nums">
+                  {streamed.length} / {chunks.length}
+                </span>
+              </div>
+
+              {/* Real vectors, drawn the moment each batch comes back from the
+                  worker. This is the work happening, not an animation of it. */}
+              {streamed.length > 0 && (
+                <div className="mt-5 space-y-2 text-left">
+                  <p className="text-xs font-medium text-ink-700">
+                    Vectors as they come back
+                  </p>
+                  <div className="grid gap-1.5 sm:grid-cols-2">
+                    {streamed.slice(-8).map((vector, index) => (
+                      <VectorStrip key={streamed.length - 8 + index} vector={vector} height={16} />
+                    ))}
+                  </div>
+                  <p className="wrap-anywhere line-clamp-2 pt-1 text-xs text-ink-500">
+                    {chunks[Math.min(streamed.length, chunks.length - 1)]?.text}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

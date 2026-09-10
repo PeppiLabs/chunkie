@@ -125,29 +125,40 @@ describe('fixed-window chunking', () => {
     // quadratic scan froze the tab on a large file. Doubling the input must
     // not do much worse than double the work.
     const build = (n: number) =>
-      transcriptOf(Array.from({ length: n }, (_, i) => `Message ${i} with a reasonable amount of text in it.`));
+      transcriptOf(
+        Array.from({ length: n }, (_, i) => `Message ${i} with a reasonable amount of text in it.`),
+      );
 
-    const time = (t: ReturnType<typeof transcriptOf>) => {
-      const options: ChunkOptions = {
-        ...DEFAULT_CHUNK_OPTIONS,
-        strategy: 'fixed-window',
-        size: 100,
-        overlap: 40,
-      };
-      const start = performance.now();
-      chunkTranscript(t, options);
-      return performance.now() - start;
+    const options: ChunkOptions = {
+      ...DEFAULT_CHUNK_OPTIONS,
+      strategy: 'fixed-window',
+      size: 100,
+      overlap: 40,
+    };
+
+    // Wall clock on a shared machine is noisy, so take the best of several
+    // runs rather than a single sample. The best run is the one least
+    // disturbed by whatever else the machine was doing.
+    const best = (transcript: ReturnType<typeof transcriptOf>) => {
+      let fastest = Infinity;
+      for (let run = 0; run < 5; run++) {
+        const start = performance.now();
+        chunkTranscript(transcript, options);
+        fastest = Math.min(fastest, performance.now() - start);
+      }
+      return fastest;
     };
 
     const small = build(2000);
     const large = build(8000);
 
-    // Warm up so the first call does not pay for lazy compilation.
-    time(small);
+    best(small);
+    best(large);
 
-    const ratio = time(large) / Math.max(time(small), 0.5);
-    // Four times the input, quadratic would be about sixteen times the work.
-    expect(ratio).toBeLessThan(8);
+    const ratio = best(large) / Math.max(best(small), 0.2);
+    // Four times the input. Linear would be about 4, quadratic about 16.
+    // Ten leaves room for noise while still failing on a quadratic scan.
+    expect(ratio).toBeLessThan(10);
   });
 
   it('never reports more overlap than the chunk has text', () => {

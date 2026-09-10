@@ -1,36 +1,580 @@
 {
-  "title": "Engineering standup",
-  "messages": [
-    { "speaker": "Maya", "timestamp": "2026-04-14T09:30:00Z", "text": "Morning all. Quick round, then we can dig into the release." },
-    { "speaker": "Tom", "timestamp": "2026-04-14T09:30:40Z", "text": "Yesterday I finished the caching layer for the search endpoint. Response times dropped from 900ms to about 120ms on the staging box." },
-    { "speaker": "Maya", "timestamp": "2026-04-14T09:31:20Z", "text": "That is a big win. Is it measured on the same query set as before?" },
-    { "speaker": "Tom", "timestamp": "2026-04-14T09:32:00Z", "text": "Same fifty queries, same warm cache, ran it three times and took the median." },
-    { "speaker": "Ines", "timestamp": "2026-04-14T09:32:45Z", "text": "I spent yesterday chasing the signup bug. Turns out we were sending the confirmation email before the database transaction committed." },
-    { "speaker": "Maya", "timestamp": "2026-04-14T09:33:30Z", "text": "So people clicked the link and the account did not exist yet." },
-    { "speaker": "Ines", "timestamp": "2026-04-14T09:34:10Z", "text": "Exactly. The email now goes out from an after-commit hook, so the row is always there by the time anyone clicks." },
-    { "speaker": "Tom", "timestamp": "2026-04-14T09:34:50Z", "text": "How many users hit that?" },
-    { "speaker": "Ines", "timestamp": "2026-04-14T09:35:30Z", "text": "About 40 over two weeks. I have a script to resend to all of them once the fix is live." },
-    { "speaker": "Raf", "timestamp": "2026-04-14T09:36:15Z", "text": "I am still on the migration. Moving the events table to partitioned storage is slower than I hoped." },
-    { "speaker": "Maya", "timestamp": "2026-04-14T09:36:50Z", "text": "What is the blocker?" },
-    { "speaker": "Raf", "timestamp": "2026-04-14T09:37:40Z", "text": "The table is 400 million rows and copying it locks writes for too long. I am rewriting it to backfill in batches of fifty thousand." },
-    { "speaker": "Maya", "timestamp": "2026-04-14T09:38:20Z", "text": "Do we need a maintenance window?" },
-    { "speaker": "Raf", "timestamp": "2026-04-14T09:39:00Z", "text": "With the batched version, no. It runs in the background and we cut over with a rename at the end." },
-    { "speaker": "Tom", "timestamp": "2026-04-14T09:39:45Z", "text": "Have you tested the rollback path?" },
-    { "speaker": "Raf", "timestamp": "2026-04-14T09:40:30Z", "text": "Not yet. That is today. I want to prove we can go back to the old table without losing writes." },
-    { "speaker": "Maya", "timestamp": "2026-04-14T09:41:10Z", "text": "Good. Nothing ships without a tested way back." },
-    { "speaker": "Ines", "timestamp": "2026-04-14T09:41:50Z", "text": "On the release, are we still cutting on Thursday?" },
-    { "speaker": "Maya", "timestamp": "2026-04-14T09:42:30Z", "text": "Thursday morning, so we have all day to watch it. Nothing goes out on a Friday." },
-    { "speaker": "Tom", "timestamp": "2026-04-14T09:43:15Z", "text": "The caching change needs a config flag flipped in production. I will document it in the release notes." },
-    { "speaker": "Maya", "timestamp": "2026-04-14T09:44:00Z", "text": "Please make it default off, then we turn it on once we see the dashboards are calm." },
-    { "speaker": "Ines", "timestamp": "2026-04-14T09:44:40Z", "text": "What about the alerting? Last release we found out from a customer." },
-    { "speaker": "Maya", "timestamp": "2026-04-14T09:45:30Z", "text": "That is on me. I am adding a page on error rate above two percent for five minutes straight." },
-    { "speaker": "Raf", "timestamp": "2026-04-14T09:46:10Z", "text": "Can we also alert on the queue depth? The backlog grew for an hour last time before anyone noticed." },
-    { "speaker": "Maya", "timestamp": "2026-04-14T09:46:55Z", "text": "Yes, good call. Queue depth over ten thousand for ten minutes." },
-    { "speaker": "Tom", "timestamp": "2026-04-14T09:47:40Z", "text": "One more thing, the staging database ran out of disk again overnight." },
-    { "speaker": "Raf", "timestamp": "2026-04-14T09:48:20Z", "text": "That is the event table copies I keep leaving behind. I will add a cleanup step to the migration script." },
-    { "speaker": "Maya", "timestamp": "2026-04-14T09:49:00Z", "text": "Fine. Anything anyone is stuck on that we have not covered?" },
-    { "speaker": "Ines", "timestamp": "2026-04-14T09:49:30Z", "text": "Nothing from me." },
-    { "speaker": "Tom", "timestamp": "2026-04-14T09:49:45Z", "text": "All good." },
-    { "speaker": "Maya", "timestamp": "2026-04-14T09:50:00Z", "text": "Then we are done. Raf, ping me when the rollback test passes." }
-  ]
+ "title": "Engineering team channel",
+ "messages": [
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T09:31:44Z",
+   "text": "Morning all. Quick round, then we can dig into the release."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T09:33:11Z",
+   "text": "Yesterday I finished the caching layer for the search endpoint. Response times dropped from 900ms to about 120ms on the staging box."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T09:35:02Z",
+   "text": "That is a big win. Is it measured on the same query set as before?"
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T09:37:03Z",
+   "text": "Same fifty queries, same warm cache, ran it three times and took the median."
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T09:38:31Z",
+   "text": "I spent yesterday chasing the signup bug. Turns out we were sending the confirmation email before the database transaction committed."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T09:40:17Z",
+   "text": "So people clicked the link and the account did not exist yet."
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T09:41:24Z",
+   "text": "Exactly. The email now goes out from an after-commit hook, so the row is always there by the time anyone clicks."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T09:42:33Z",
+   "text": "How many users hit that?"
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T09:44:45Z",
+   "text": "About 40 over two weeks. I have a script to resend to all of them once the fix is live."
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T09:45:39Z",
+   "text": "I am still on the migration. Moving the events table to partitioned storage is slower than I hoped."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T09:46:44Z",
+   "text": "What is the blocker?"
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T09:48:10Z",
+   "text": "The table is 400 million rows and copying it locks writes for too long. I am rewriting it to backfill in batches of fifty thousand."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T09:49:27Z",
+   "text": "Do we need a maintenance window?"
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T09:50:19Z",
+   "text": "With the batched version, no. It runs in the background and we cut over with a rename at the end."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T09:51:38Z",
+   "text": "Have you tested the rollback path?"
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T09:52:27Z",
+   "text": "Not yet. That is today. I want to prove we can go back to the old table without losing writes."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T09:53:58Z",
+   "text": "Good. Nothing ships without a tested way back."
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T09:55:32Z",
+   "text": "On the release, are we still cutting on Thursday?"
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T09:57:36Z",
+   "text": "Thursday morning, so we have all day to watch it. Nothing goes out on a Friday."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T09:58:33Z",
+   "text": "The caching change needs a config flag flipped in production. I will document it in the release notes."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:00:41Z",
+   "text": "Please make it default off, then we turn it on once we see the dashboards are calm."
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T10:02:33Z",
+   "text": "What about the alerting? Last release we found out from a customer."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:03:20Z",
+   "text": "That is on me. I am adding a page on error rate above two percent for five minutes straight."
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T10:04:14Z",
+   "text": "Can we also alert on the queue depth? The backlog grew for an hour last time before anyone noticed."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:06:01Z",
+   "text": "Yes, good call. Queue depth over ten thousand for ten minutes."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T10:07:55Z",
+   "text": "One more thing, the staging database ran out of disk again overnight."
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T10:08:54Z",
+   "text": "That is the event table copies I keep leaving behind. I will add a cleanup step to the migration script."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:10:38Z",
+   "text": "Fine. Anything anyone is stuck on that we have not covered?"
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T10:11:39Z",
+   "text": "Nothing from me."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T10:12:33Z",
+   "text": "All good."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:14:19Z",
+   "text": "Then we are done. Raf, ping me when the rollback test passes."
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T10:15:05Z",
+   "text": "Rollback test passed. I killed the backfill halfway, renamed back, and no writes were lost."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:16:25Z",
+   "text": "How did you prove nothing was lost?"
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T10:17:25Z",
+   "text": "I ran a checksum of row counts and a sample of ids on both tables before and after. They matched exactly."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T10:19:06Z",
+   "text": "Did you test it under write load or on an idle database?"
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T10:21:07Z",
+   "text": "Under load. I had a script writing two hundred rows a second the whole time."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:22:29Z",
+   "text": "That is the answer I wanted. Ship it."
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T10:23:21Z",
+   "text": "While we are here, the signup fix is deployed and I resent to all 40 accounts. 31 have activated."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:24:32Z",
+   "text": "What about the other nine?"
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T10:26:44Z",
+   "text": "Six bounced, so those addresses were wrong to begin with. Three have not opened it yet."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T10:27:46Z",
+   "text": "Do we chase them?"
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:29:50Z",
+   "text": "One reminder after seven days, then leave it. Chasing harder than that is spam."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T10:31:04Z",
+   "text": "The caching flag is on in production. Latency at the ninety fifth percentile went from 1.4 seconds to 180 milliseconds."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:32:00Z",
+   "text": "Any errors?"
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T10:32:57Z",
+   "text": "Error rate is flat at 0.1 percent, same as before. Cache hit rate settled at 83 percent after an hour."
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T10:34:51Z",
+   "text": "What happens on a cache miss under load? Do we stampede the database?"
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T10:35:59Z",
+   "text": "Good question. Right now yes, if a popular key expires we could get a hundred requests all rebuilding it at once."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:36:51Z",
+   "text": "Then that is the next thing. A single flight lock so only one request rebuilds and the rest wait."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T10:38:26Z",
+   "text": "I will add it this week. It is about thirty lines."
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T10:40:33Z",
+   "text": "Worth setting a jittered expiry too, so keys do not all expire on the same second."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T10:41:50Z",
+   "text": "Agreed, I will do both together."
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T10:43:48Z",
+   "text": "We have a problem. The mobile app is showing stale prices for some users."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:44:43Z",
+   "text": "How stale?"
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T10:45:31Z",
+   "text": "Up to six hours. One customer was quoted the old sale price and it did not match at checkout."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T10:47:16Z",
+   "text": "That smells like my cache. Prices are in the cached payload."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:48:34Z",
+   "text": "Can you confirm before we assume?"
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T10:49:56Z",
+   "text": "Checking. Yes, confirmed. The price object is nested inside the product payload and I set a six hour expiry on the whole thing."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:51:29Z",
+   "text": "So a price change does not invalidate the cache."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T10:52:30Z",
+   "text": "Right. Prices need to be either outside the cached payload or the cache needs invalidating on price write."
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T10:53:15Z",
+   "text": "Invalidating on write is cleaner. Otherwise you have two sources of truth in the response."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T10:55:14Z",
+   "text": "Agreed. I will publish an invalidation event whenever a price row changes."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:56:15Z",
+   "text": "How long to fix?"
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T10:57:11Z",
+   "text": "Today. And I will drop the expiry to fifteen minutes in the meantime so the blast radius shrinks now."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T10:58:13Z",
+   "text": "Do the short expiry immediately, then the proper fix. What do we tell the customer who got the wrong price?"
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T10:59:52Z",
+   "text": "We honour the price they were shown. It was our error."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T11:01:35Z",
+   "text": "Agreed. Every one of them, not just the ones who complain."
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T11:02:28Z",
+   "text": "The partition migration is complete. All 400 million rows are across and the old table is dropped."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T11:03:55Z",
+   "text": "How long did the backfill take in the end?"
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T11:04:44Z",
+   "text": "Nineteen hours, running at about six thousand rows a second. No downtime and no failed writes."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T11:05:59Z",
+   "text": "What did it do to query times?"
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T11:07:41Z",
+   "text": "Reporting queries that scanned a month of events went from 40 seconds to under two. Anything that scans a single day is roughly the same as before."
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T11:08:56Z",
+   "text": "Is disk usage better or worse?"
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T11:10:47Z",
+   "text": "Slightly worse right now because each partition carries its own indexes, about eight percent more. It pays for itself once we start dropping old partitions."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T11:12:03Z",
+   "text": "When do we start dropping them?"
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T11:13:01Z",
+   "text": "Retention is thirteen months. The first drop is in four weeks and it should free about sixty gigabytes."
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T11:14:27Z",
+   "text": "Someone reported that search returns nothing for accented characters. Searching for a name with an acute accent gives zero results."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T11:15:23Z",
+   "text": "That is a normalisation problem. We are indexing the raw string and comparing against a folded query."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T11:17:20Z",
+   "text": "So the index and the query disagree about what the same word looks like."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T11:19:22Z",
+   "text": "Yes. Both sides need the same unicode normalisation before they are compared."
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T11:20:44Z",
+   "text": "Does that mean reindexing everything?"
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T11:21:51Z",
+   "text": "It does. About two hours for the full corpus, and search stays up because I can build into a new index and swap."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T11:23:15Z",
+   "text": "Do it. How many users does this affect?"
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T11:24:12Z",
+   "text": "Hard to say precisely, but nine percent of our customer names contain a character outside plain ascii."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T11:25:34Z",
+   "text": "That is far too many to leave broken."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T11:26:36Z",
+   "text": "The single flight lock is in. I load tested it with a thousand concurrent requests against one expired key."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T11:27:25Z",
+   "text": "And?"
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T11:28:39Z",
+   "text": "One database query instead of a thousand. The other 999 waited an average of 40 milliseconds and got the shared result."
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T11:30:13Z",
+   "text": "What happens if the one rebuilding request fails?"
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T11:31:10Z",
+   "text": "The lock releases and the next waiter takes over rebuilding, rather than all of them failing together."
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T11:32:37Z",
+   "text": "Did you test that path or reason about it?"
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T11:34:50Z",
+   "text": "Tested. I made the rebuild throw deliberately and watched the second request pick it up."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T11:36:29Z",
+   "text": "Good. That is the difference between a fix and a hope."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T11:38:29Z",
+   "text": "Postmortem time on the stale price incident. What is the actual root cause?"
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T11:39:21Z",
+   "text": "The cache stored a composite object without thinking about which parts change at different rates."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T11:40:48Z",
+   "text": "And the reason nobody caught it in review?"
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T11:41:52Z",
+   "text": "The review was on the caching mechanism, not on what was being cached. We looked at the how and not the what."
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T11:42:54Z",
+   "text": "We also had no alert on price mismatch between the quote and the checkout. The customer was our monitoring."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T11:44:02Z",
+   "text": "That is the part that bothers me most. Tom, can we compare quoted price to charged price and alert on divergence?"
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T11:46:16Z",
+   "text": "Yes, and it is cheap. Log both at checkout and alert if they differ by more than a penny."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T11:47:04Z",
+   "text": "Do that. Three actions then: invalidation on write, which is done, the mismatch alert, and a review checklist item asking what changes at a different rate to the rest of this payload."
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T11:48:24Z",
+   "text": "I will write the checklist item up."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T11:50:02Z",
+   "text": "Nobody gets blamed for this one. The design was reasonable and the failure mode was not obvious. The gap was that we found out from a customer."
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T11:52:02Z",
+   "text": "Heads up, the nightly reporting job has been failing silently for six days."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T11:53:00Z",
+   "text": "Silently how?"
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T11:53:55Z",
+   "text": "It catches the exception, logs at debug level, and exits zero. So the scheduler thinks it succeeded."
+  },
+  {
+   "speaker": "Tom",
+   "timestamp": "2026-04-14T11:55:08Z",
+   "text": "That is worse than crashing."
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T11:56:49Z",
+   "text": "Much worse. A crash would have paged someone on day one."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T11:58:04Z",
+   "text": "What was the underlying error?"
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T12:00:03Z",
+   "text": "A column rename from the migration. The job still referenced the old name."
+  },
+  {
+   "speaker": "Ines",
+   "timestamp": "2026-04-14T12:01:25Z",
+   "text": "Why did the migration not catch that?"
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T12:03:00Z",
+   "text": "The job lives in a different repository and nothing links the two. There is no test that runs the reporting queries against the real schema."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T12:04:01Z",
+   "text": "Then that is the fix, not just the column name. Add a schema contract test that runs in both repositories."
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T12:05:02Z",
+   "text": "Agreed. And I am changing the catch to log at error and exit non zero, so it can never fail quietly again."
+  },
+  {
+   "speaker": "Maya",
+   "timestamp": "2026-04-14T12:06:32Z",
+   "text": "Six days of missing reports. Can we backfill?"
+  },
+  {
+   "speaker": "Raf",
+   "timestamp": "2026-04-14T12:08:26Z",
+   "text": "Yes, the raw events are all there. I will rerun the six days tonight."
+  }
+ ]
 }

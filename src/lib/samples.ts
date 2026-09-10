@@ -24,33 +24,33 @@ export interface Sample {
 
 export const SAMPLES: Sample[] = [
   {
-    path: 'samples/customer-support.json',
-    label: 'Customer support chat',
-    blurb: 'A shopper chasing a late parcel, a locked account, and a return.',
+    path: 'samples/friends-chat.json',
+    label: 'Two friends over a few months',
+    blurb: 'A flat move, a job change, a trip, a bad knee, and a car that clicks.',
     questions: [
-      'how long before I am reimbursed',
-      'I am shut out of my profile',
-      'can I have it delivered to my workplace',
+      'did she get the job',
+      'why does her leg hurt',
+      'what was wrong with the car',
     ],
   },
   {
     path: 'samples/team-standup.json',
-    label: 'Engineering standup',
-    blurb: 'A team talking through a caching change, a bug, and a database migration.',
+    label: 'Engineering team channel',
+    blurb: 'A sprint of caching work, a database migration, and one bad incident.',
     questions: [
-      'what made the site quicker',
+      'what fixed the slowness',
       'why are we running out of space',
-      'can we undo it if it goes wrong',
+      'why did nobody trust the figures',
     ],
   },
   {
     path: 'samples/cooking-club.json',
     label: 'Cooking club group chat',
-    blurb: 'Friends swapping advice on risotto, bread, and what to bring on Saturday.',
+    blurb: 'Risotto that went wrong, bread that would not rise, and a meetup to plan.',
     questions: [
       'what should I leave out for allergies',
-      'why did my dough stay flat',
-      'how do I stop it turning gluey',
+      'why is my rice sticky',
+      'my bread is too heavy, what now',
     ],
   },
 ];

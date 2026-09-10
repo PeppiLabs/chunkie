@@ -57,6 +57,7 @@ export default function App() {
     setChunkOptions,
     embedded,
     embedding,
+    streamed,
     progress,
     error,
     setError,
@@ -65,7 +66,6 @@ export default function App() {
     queryVector,
     queryPoint,
     hits,
-    searching,
     loadFile,
     loadSample,
     runEmbedding,
@@ -104,11 +104,9 @@ export default function App() {
       {/* Announces stage changes and search results, which are otherwise
           silent for anyone not watching the screen. */}
       <p aria-live="polite" className="sr-only">
-        {searching
-          ? 'Searching'
-          : hits
-            ? `${hits.length} results found for ${query}`
-            : `Step ${stepNumber} of ${STEPS.length}, ${heading.title}`}
+        {hits
+          ? `${hits.length} results found for ${query}`
+          : `Step ${stepNumber} of ${STEPS.length}, ${heading.title}`}
       </p>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
@@ -172,6 +170,7 @@ export default function App() {
             chunks={chunks}
             embedded={embedded}
             embedding={embedding}
+            streamed={streamed}
             progress={progress}
             onRun={runEmbedding}
             onContinue={() => setStep('search')}
@@ -184,7 +183,6 @@ export default function App() {
             query={query}
             onQueryChange={setQuery}
             onSearch={runSearch}
-            searching={searching}
             hits={hits}
             queryVector={queryVector}
             queryPoint={queryPoint}

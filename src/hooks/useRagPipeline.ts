@@ -40,7 +40,6 @@ export function useRagPipeline() {
   const [query, setQuery] = useState('');
   const [queryVector, setQueryVector] = useState<Float32Array | null>(null);
   const [hits, setHits] = useState<SearchHit[] | null>(null);
-  const [searching, setSearching] = useState(false);
   /**
    * True only while a run the visitor started is in flight.
    *
@@ -49,6 +48,13 @@ export function useRagPipeline() {
    * the button before anyone had pressed it, so the two are tracked apart.
    */
   const [embedding, setEmbedding] = useState(false);
+  /**
+   * Vectors that have arrived so far in the current run.
+   *
+   * The worker streams a batch at a time, so the embed step can draw real
+   * output as it appears rather than a bar with nothing behind it.
+   */
+  const [streamed, setStreamed] = useState<Float32Array[]>([]);
 
   const embedderRef = useRef<Embedder | null>(null);
   /**
@@ -60,6 +66,13 @@ export function useRagPipeline() {
    * has moved on, which stops a stale result from overwriting fresh state.
    */
   const generationRef = useRef(0);
+  /**
+   * Counts queries so a slower one cannot land on top of a newer one.
+   *
+   * Search runs on every keystroke, so several are in flight at once and they
+   * do not necessarily come back in the order they were sent.
+   */
+  const querySeqRef = useRef(0);
 
   // One embedder for the life of the component, torn down on unmount.
   useEffect(() => {
@@ -155,13 +168,22 @@ export function useRagPipeline() {
     const generation = generationRef.current;
     setError(null);
     setEmbedding(true);
+    setStreamed([]);
     setProgress({ phase: 'loading-model', ratio: 0, label: 'Starting the model' });
 
     try {
-      const vectors = await embedder.embed(chunks.map((chunk) => chunk.text), (update) => {
-        // Late progress from a superseded run must not drive the bar.
-        if (generationRef.current === generation) setProgress(update);
-      });
+      const vectors = await embedder.embed(
+        chunks.map((chunk) => chunk.text),
+        (update) => {
+          // Late progress from a superseded run must not drive the bar.
+          if (generationRef.current === generation) setProgress(update);
+        },
+        ({ vectors: batch }) => {
+          if (generationRef.current !== generation) return;
+          // Copy out of the transferred buffer's view before storing it.
+          setStreamed((current) => [...current, ...batch.map((v) => v.slice())]);
+        },
+      );
       // The chunking changed while this ran, so these vectors describe nothing
       // the visitor is looking at any more.
       if (generationRef.current !== generation) return;
@@ -188,21 +210,35 @@ export function useRagPipeline() {
     }
   }, [chunks]);
 
-  /** Embeds the query and ranks every chunk against it. */
+  /**
+   * Embeds the query and ranks every chunk against it.
+   *
+   * Called on every keystroke. Embedding one short query takes a couple of
+   * milliseconds, so there is nothing to debounce away, but several can be in
+   * flight at once and they need not return in order. The sequence number
+   * makes sure only the newest one is ever shown.
+   */
   const runSearch = useCallback(
     async (rawQuery: string) => {
       const embedder = embedderRef.current;
       const text = rawQuery.trim();
-
-      if (!embedder || !embedded || !projection || !text) return;
-
+      const seq = ++querySeqRef.current;
       const generation = generationRef.current;
-      setError(null);
-      setSearching(true);
+
+      if (!text) {
+        setHits(null);
+        setQueryVector(null);
+        return;
+      }
+
+      if (!embedder || !embedded || !projection) return;
 
       try {
         const [vector] = await embedder.embed([text]);
-        // Same guard as embedding: the chunks may have changed underneath us.
+
+        // A newer keystroke has already been sent, so this answer is stale.
+        if (querySeqRef.current !== seq) return;
+        // Or the chunks changed underneath us.
         if (generationRef.current !== generation) return;
 
         const ranked = embedded
@@ -214,10 +250,8 @@ export function useRagPipeline() {
         setQueryVector(vector);
         setHits(ranked);
       } catch (cause) {
-        if (generationRef.current !== generation) return;
+        if (querySeqRef.current !== seq) return;
         setError(cause instanceof Error ? cause.message : 'That search could not be run.');
-      } finally {
-        setSearching(false);
       }
     },
     [embedded, projection],
@@ -265,6 +299,7 @@ export function useRagPipeline() {
     setChunkOptions,
     embedded,
     embedding,
+    streamed,
     progress,
     error,
     setError,
@@ -273,7 +308,6 @@ export function useRagPipeline() {
     queryVector,
     queryPoint,
     hits,
-    searching,
     loadFile,
     loadSample,
     runEmbedding,

@@ -30,13 +30,17 @@ You load a chat transcript, and the app walks through the four stages every RAG 
 | **1. Load** | A JSON transcript is parsed into messages | The raw chat, exactly as the system sees it |
 | **2. Chunk** | The chat is cut into retrievable pieces | Chunk boundaries, sizes, and the overlap between them |
 | **3. Embed** | Each chunk becomes 384 numbers | The actual vector values, and a 2D map of the vector space |
-| **4. Search** | Your question is compared to every chunk | Cosine scores, ranked results, and the context an LLM would receive |
+| **4. Search** | Every keystroke is compared to every chunk | Your question's vector changing as you type, cosine scores, ranked results, and the context an LLM would receive |
 
-The point most people miss is stage 4. Ask the support transcript "how long before I am
-reimbursed" and the passage it returns is "we process the refund within two days of the parcel
-reaching our warehouse, then your bank takes another three to five days". The question and the
-answer share no words at all, so a keyword search finds nothing. That gap is the entire reason RAG
-systems bother with embeddings, and you can watch it happen.
+The point most people miss is stage 4. Ask the friends transcript "why does her leg hurt" and the
+passage it returns is "the knee is where it hurts, not where it is caused", followed by a
+discussion of IT band pain that never uses the word leg. A keyword search for "leg" finds nothing
+useful. That gap is the entire reason RAG systems bother with embeddings, and you can watch it
+happen.
+
+Search runs on every character you type, with no button to press, because embedding one short
+question takes about a millisecond. Watching the ranking rearrange as you type is the clearest
+demonstration of what the model is actually doing.
 
 ## Try it
 
@@ -128,6 +132,12 @@ Each message needs a text field. These names are recognised:
 
 The three bundled samples live in [`public/samples/`](public/samples) and are entirely synthetic.
 They contain no real people and no personal data.
+
+| Sample | Size | What is in it |
+| --- | --- | --- |
+| Two friends over a few months | 147 messages, 2 people | A flat move, a job change, a trip, a running injury, a car fault |
+| Engineering team channel | 115 messages, 4 people | Caching work, a database migration, and one bad incident |
+| Cooking club group chat | 115 messages, 4 people | Risotto, bread, seasoning, and planning a meetup |
 
 ## Project layout
 

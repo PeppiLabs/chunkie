@@ -1,0 +1,740 @@
+{
+ "title": "Two friends over a few months",
+ "messages": [
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T18:27:46Z",
+   "text": "Have you had a chance to look at that flat listing I sent?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T18:37:17Z",
+   "text": "I did. The kitchen is tiny but the light is unreal. Which floor is it on?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T18:45:38Z",
+   "text": "Third, no lift. That is the bit I keep going back and forth on."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T18:55:02Z",
+   "text": "Three flights with shopping every week adds up. How long is the commute?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T19:03:16Z",
+   "text": "Twenty five minutes door to door, which is half what I do now."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T19:12:26Z",
+   "text": "Then the stairs are worth it. You would get back nearly an hour a day."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T19:19:44Z",
+   "text": "That is roughly how I have been thinking about it too."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T19:26:20Z",
+   "text": "What is the rent compared to your current place?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T19:35:02Z",
+   "text": "Ninety pounds more a month. Not nothing, but not the deal breaker."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T19:38:50Z",
+   "text": "Does that include bills?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T19:46:43Z",
+   "text": "Water and building maintenance, not heating or electricity."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T19:58:41Z",
+   "text": "Ask what the heating bill ran to last winter. A top floor flat with old windows can be brutal."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T20:04:42Z",
+   "text": "Good shout. I will email the agent tonight."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T20:14:55Z",
+   "text": "Also ask if the boiler was serviced this year. They have to have a certificate."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T20:25:57Z",
+   "text": "Agent says the boiler was replaced in January and the windows were done two years ago."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T20:33:36Z",
+   "text": "That is better than I expected. Then I think you take it."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T20:39:44Z",
+   "text": "I put the holding deposit down this morning."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T20:44:42Z",
+   "text": "Congratulations. When do you move?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T20:53:38Z",
+   "text": "Fourteenth. Which gives me three weeks to get rid of half my things."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T21:00:56Z",
+   "text": "I can come and help on the Saturday if that is useful."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T21:03:24Z",
+   "text": "It really would be. I will feed you."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T21:04:19Z",
+   "text": "Sold."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T21:08:14Z",
+   "text": "How did the interview go?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T21:19:44Z",
+   "text": "Better than I thought. Two hours, three people, and they actually let me finish sentences."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T21:25:38Z",
+   "text": "Low bar but a real one. What did they ask?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T21:36:19Z",
+   "text": "A lot about the reporting project. They wanted to know what I would do differently."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T21:39:18Z",
+   "text": "What did you say?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T21:50:55Z",
+   "text": "That I would have talked to the people using it before building anything, instead of after."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T21:56:42Z",
+   "text": "That is a good answer because it is true."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T22:04:00Z",
+   "text": "They seemed to like it. There is a third round though."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T22:06:38Z",
+   "text": "What is in it?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T22:18:15Z",
+   "text": "A presentation to the wider team. Forty minutes on how I would approach their data problem."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T22:27:04Z",
+   "text": "Do you have enough about their data problem to build forty minutes?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T22:36:49Z",
+   "text": "Not really. They sent a two page brief and it is mostly marketing language."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T22:49:01Z",
+   "text": "Then ask for a call with whoever owns the problem. If they say no, that tells you something too."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T22:59:14Z",
+   "text": "I asked and they said yes. Half an hour on Thursday with the head of analytics."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T23:05:36Z",
+   "text": "That is a good sign. They want you to do well."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T23:18:58Z",
+   "text": "The call was useful. Their actual issue is that nobody trusts the numbers, not that the numbers are wrong."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T23:27:33Z",
+   "text": "That is a completely different talk to the one the brief implied."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T23:37:04Z",
+   "text": "Which is why it was worth asking. I am rewriting the whole thing tonight."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T23:41:34Z",
+   "text": "How did the presentation land?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T23:52:29Z",
+   "text": "They asked questions for twenty minutes afterwards, which I am taking as a good sign."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-04T23:55:03Z",
+   "text": "It usually is. Silence is the bad one."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-04T23:57:10Z",
+   "text": "I got the offer this morning."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T00:02:29Z",
+   "text": "That is brilliant. Are you taking it?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T00:13:17Z",
+   "text": "I think so. It is a small pay rise but the work is much closer to what I want to do."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T00:17:12Z",
+   "text": "How is the notice period?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T00:28:21Z",
+   "text": "A month. So I finish at the end of next month and start in the middle of the one after."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T00:34:50Z",
+   "text": "Take the two weeks in between and go somewhere."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T00:37:18Z",
+   "text": "That is exactly what I was thinking."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T00:42:51Z",
+   "text": "So, somewhere for two weeks. Any ideas?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T00:51:40Z",
+   "text": "Depends what you want. Doing nothing, or walking eight hours a day?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T00:59:12Z",
+   "text": "Somewhere in between. Warm, walkable, not too expensive."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T01:06:37Z",
+   "text": "Portugal. Fly into Porto, work your way down the coast."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T01:10:32Z",
+   "text": "How long would that take?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T01:21:48Z",
+   "text": "You could do Porto, Coimbra and Lisbon comfortably in ten days with trains between them."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T01:25:36Z",
+   "text": "Are the trains any good?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T01:34:11Z",
+   "text": "Very. Porto to Lisbon is under three hours and it is a nice ride."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T01:37:38Z",
+   "text": "What is Coimbra like?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T01:48:19Z",
+   "text": "Old university town, hilly, quieter than the other two. Worth two nights, not more."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T01:53:45Z",
+   "text": "And what would I actually do in Porto?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T02:02:13Z",
+   "text": "Walk the river, eat too much, take the tram to the coast at Foz."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T02:06:15Z",
+   "text": "What time of year is best?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T02:16:56Z",
+   "text": "Late September or early October. Still warm, far fewer people, and the prices drop."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T02:23:18Z",
+   "text": "That fits perfectly with the gap between jobs."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T02:30:57Z",
+   "text": "Then book the flights before you talk yourself out of it."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T02:39:53Z",
+   "text": "Booked. Porto on the twenty ninth, back from Lisbon on the eleventh."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T02:43:27Z",
+   "text": "Where are you staying?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T02:56:35Z",
+   "text": "Small place in Cedofeita for the first four nights. It looked less polished than the ones in the centre."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T03:06:13Z",
+   "text": "Good instinct. The centre is lovely and completely full of people like us."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T03:10:36Z",
+   "text": "Anything I should book ahead?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T03:22:55Z",
+   "text": "Nothing much, but the good restaurants fill up. Book the ones you actually care about a week out."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T03:26:50Z",
+   "text": "Any you would send me to?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T03:40:40Z",
+   "text": "There is a tiny place near the market that does one fish dish a day and nothing else. I will dig out the name."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T03:41:50Z",
+   "text": "Please do."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T03:48:12Z",
+   "text": "My knee has been sore since the run on Sunday."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T03:53:52Z",
+   "text": "Sore where exactly? Front, side, behind?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T04:01:52Z",
+   "text": "Outside, just above the joint. It gets worse going downhill."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T04:09:31Z",
+   "text": "That sounds like the IT band rather than the knee itself."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T04:14:08Z",
+   "text": "How do you tell the difference?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T04:29:43Z",
+   "text": "IT band pain is usually a sharp line on the outside and it hates downhills specifically. Knee problems hurt going up as well."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T04:36:40Z",
+   "text": "Then it is that, because uphill is completely fine."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T04:42:13Z",
+   "text": "How much did you increase your mileage?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T04:50:48Z",
+   "text": "From about fifteen to twenty five a week. Over maybe three weeks."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T05:01:22Z",
+   "text": "There it is. That is a two thirds jump and the usual advice is ten percent a week."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T05:04:28Z",
+   "text": "So I need to stop?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T05:13:59Z",
+   "text": "Not stop, but back off to fifteen and stay off the hills for a fortnight."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T05:17:47Z",
+   "text": "Will it heal on its own?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T05:30:13Z",
+   "text": "Usually, if you take the load off early. If you push through it, it takes months instead of weeks."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T05:34:15Z",
+   "text": "Anything else worth doing?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T05:45:38Z",
+   "text": "Hip and glute work. It is almost always weakness there rather than a problem at the knee."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T05:47:42Z",
+   "text": "That is not what I expected."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T05:57:20Z",
+   "text": "It surprises everyone. The knee is where it hurts, not where it is caused."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T06:03:00Z",
+   "text": "Two weeks easy and it is basically gone."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T06:12:10Z",
+   "text": "Good. Now build back slowly, and add the hills last rather than first."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T06:16:12Z",
+   "text": "Did you ever sort the car?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T06:24:54Z",
+   "text": "Not yet. It still makes that noise when I turn right at low speed."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T06:26:31Z",
+   "text": "Describe the noise."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T06:33:07Z",
+   "text": "A dry clicking, roughly in time with the wheels."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T06:37:44Z",
+   "text": "Only on right turns or on both?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T06:46:05Z",
+   "text": "Much worse on right, and only when the wheel is near full lock."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T06:52:55Z",
+   "text": "That is a CV joint, most likely the left hand one."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T06:56:01Z",
+   "text": "Is that expensive?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T07:09:37Z",
+   "text": "The part is cheap. The labour is a few hours. Two hundred and fifty to four hundred depending on the garage."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T07:14:49Z",
+   "text": "Is it safe to drive in the meantime?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T07:24:48Z",
+   "text": "For short distances at low speed, yes. Do not take it on a long motorway run."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T07:29:04Z",
+   "text": "What happens if I ignore it?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T07:41:16Z",
+   "text": "It eventually fails, and if it fails while turning you lose drive to that wheel with no warning."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T07:43:29Z",
+   "text": "That settles it. Booking it in."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T07:55:34Z",
+   "text": "Get a second quote. The first garage I called quoted almost double the second for the same job."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T08:05:40Z",
+   "text": "Three hundred and ten, done Thursday. Second quote was four hundred and sixty."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T08:07:38Z",
+   "text": "Worth the phone call then."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T08:16:34Z",
+   "text": "It is completely silent now. I had stopped noticing how loud it was."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T08:25:09Z",
+   "text": "That is how it goes. It gets worse slowly enough that you adjust."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T08:30:14Z",
+   "text": "What are you reading at the moment?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T08:42:40Z",
+   "text": "A long novel about a family running a hotel over about fifty years. Slow but I cannot put it down."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T08:45:39Z",
+   "text": "Is it depressing?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T08:55:45Z",
+   "text": "Sad in places but not bleak. More that time passes and people miss each other."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T09:01:53Z",
+   "text": "That is my kind of thing. Send me the title."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T09:06:51Z",
+   "text": "Will do. What did you finish last?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T09:15:12Z",
+   "text": "That book about the deep sea. Half of it is genuinely alarming."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T09:17:43Z",
+   "text": "Alarming how?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T09:28:24Z",
+   "text": "Mostly how little of it anyone has actually looked at. We have better maps of Mars."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T09:33:50Z",
+   "text": "Have you seen anything worth watching?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T09:44:17Z",
+   "text": "There is a documentary about a bridge collapse that is far better than it sounds."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T09:45:39Z",
+   "text": "Sell it to me."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T09:54:35Z",
+   "text": "It is really about how nobody wanted to be the person who said stop."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T09:56:24Z",
+   "text": "Now I want to watch it."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T10:04:31Z",
+   "text": "It is about ninety minutes and it does not waste any of them."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T10:10:18Z",
+   "text": "Are you doing anything for your birthday?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T10:19:42Z",
+   "text": "I was going to ignore it, but the new job starts that week so maybe not."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T10:27:14Z",
+   "text": "Do something small. You have had a big couple of months."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T10:36:24Z",
+   "text": "Maybe dinner. Eight people, somewhere we can actually hear each other."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T10:46:09Z",
+   "text": "Then not that place with the tiled floors. Nobody heard anything last time."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T10:54:23Z",
+   "text": "Agreed. Somewhere with soft furnishings and a table for eight."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T11:03:33Z",
+   "text": "The Italian near the park has a back room. I think it seats about ten."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T11:08:17Z",
+   "text": "Do they take bookings that size?"
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T11:15:14Z",
+   "text": "They do, but a couple of weeks ahead for a weekend."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T11:23:35Z",
+   "text": "Booked for the Saturday. Back room, eight of us, eight o'clock."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T11:30:39Z",
+   "text": "Perfect. Do you want anything or is presence enough?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T11:40:03Z",
+   "text": "Presence is enough. I am about to move flat, I do not need more objects."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T11:46:25Z",
+   "text": "Very sensible and I will ignore it completely."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T11:47:59Z",
+   "text": "Thought you might."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T11:51:33Z",
+   "text": "How was it in the end?"
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T12:02:35Z",
+   "text": "Genuinely lovely. Everyone stayed until midnight and the back room was the right call."
+  },
+  {
+   "speaker": "Sam",
+   "timestamp": "2026-05-05T12:11:45Z",
+   "text": "Good. You looked like you needed a night that was not about logistics."
+  },
+  {
+   "speaker": "Priya",
+   "timestamp": "2026-05-05T12:17:25Z",
+   "text": "I did. Thank you for pushing me into it."
+  }
+ ]
+}

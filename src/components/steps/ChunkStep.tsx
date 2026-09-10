@@ -41,6 +41,9 @@ export function ChunkStep({
 
   const update = (patch: Partial<ChunkOptions>) => onOptionsChange({ ...options, ...patch });
 
+  /** Changes whenever the chunking does, which restarts the reveal. */
+  const revealKey = `${options.strategy}-${options.size}-${options.overlap}-${options.groupSize}`;
+
   return (
     <StepLayout
       explainers={
@@ -169,8 +172,15 @@ export function ChunkStep({
           />
 
           <div className="max-h-[40rem] space-y-3 overflow-y-auto p-5">
-            {chunks.slice(0, MAX_VISIBLE_CHUNKS).map((chunk) => (
-              <ChunkCard key={chunk.id} chunk={chunk} />
+            {chunks.slice(0, MAX_VISIBLE_CHUNKS).map((chunk, index) => (
+              // Keyed by the settings as well as the id, so changing a slider
+              // remounts the cards and the reveal plays again. That is what
+              // makes an instant rebuild visible.
+              <ChunkCard
+                key={`${revealKey}-${chunk.id}`}
+                chunk={chunk}
+                revealIndex={index}
+              />
             ))}
 
             {chunks.length > MAX_VISIBLE_CHUNKS && (
