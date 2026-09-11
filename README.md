@@ -61,9 +61,11 @@ Open the URL it prints, usually <http://localhost:5173>.
 
 ### Ports
 
-The backend listens on **5050**. The original code used 5000, which on macOS is taken by the
-AirPlay Receiver, so it was moved. Both ends are configurable through `.env` (see
-`.env.example`): `PORT` for the backend and `VITE_API_URL` for where the frontend looks.
+The backend listens on **127.0.0.1:5050**, this machine only. The original code used port 5000,
+which on macOS is taken by the AirPlay Receiver, so it was moved. Everything is configurable
+through `.env` (see `.env.example`): `PORT` and `HOST` for the backend, `VITE_API_URL` for where
+the frontend looks, and `ALLOWED_ORIGINS` if a browser on another origin needs access. Any port
+on `localhost` is always allowed, so the frontend keeps working if Vite picks a different one.
 
 ## Using it
 
@@ -114,8 +116,9 @@ Source files are a JSON array. Each record is one person on one day:
 ```
 
 `memory_type`, `importance` and `emotion` are optional and only affect what the detail panel
-shows. Drop your own file into `server/data/` or upload it through the API, then restart nothing:
-the file list is read fresh on every request.
+shows. Drop your own file into `server/data/`, or upload it through the API, which stores it in
+`server/data/uploads/` and never overwrites an existing file. Restart nothing: the file list is
+read fresh on every request.
 
 The bundled sample is synthetic. It contains no real people and no real data.
 
@@ -153,7 +156,8 @@ cosine similarity over the collection, which is instant at this scale.
 `npm audit` reports advisories in `sharp` and `onnxruntime-node`, which arrive with
 `@huggingface/transformers`. `sharp` is for image inputs this project never uses. Unlike the
 browser only version on `main`, this branch does run `onnxruntime-node`, because the backend
-embeds on the server side. It listens on localhost and is intended for local use.
+embeds on the server side. It binds to 127.0.0.1 only, accepts browser requests only from
+localhost origins, and is intended for local use.
 
 ## License
 

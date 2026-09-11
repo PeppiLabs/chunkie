@@ -24,7 +24,36 @@ import { pipeline, env } from '@huggingface/transformers';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(HERE, 'data');
 const PROCESSED_DIR = path.join(DATA_DIR, 'processed');
+const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
 const PORT = Number(process.env.PORT) || 5050;
+// Loopback only. A bare listen(PORT) would accept connections from anything on
+// the same network, and this server hands out whatever is in its data folder.
+const HOST = process.env.HOST || '127.0.0.1';
+
+/**
+ * Origins allowed to call this server from a browser.
+ *
+ * A wildcard would let any web page you happen to have open read your data
+ * files and start jobs, because the browser is on this machine even though
+ * the server only listens on loopback. Any port on localhost is accepted so
+ * the frontend keeps working when Vite has to pick a different port, and
+ * ALLOWED_ORIGINS extends the list for anything else.
+ */
+const EXTRA_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true; // curl, same origin, and other non browser callers
+  if (EXTRA_ORIGINS.includes(origin)) return true;
+  try {
+    const { hostname, protocol } = new URL(origin);
+    return protocol === 'http:' && (hostname === 'localhost' || hostname === '127.0.0.1');
+  } catch {
+    return false;
+  }
+}
 
 /** Sentence embedding model. Small, and good enough to demonstrate real semantic search. */
 const MODEL_ID = 'Xenova/all-MiniLM-L6-v2';
@@ -118,26 +147,30 @@ async function readRecords(absolutePath) {
 /** Lists source files and any processed chunk files derived from them. */
 async function listFiles() {
   await fs.mkdir(PROCESSED_DIR, { recursive: true });
+  await fs.mkdir(UPLOAD_DIR, { recursive: true });
   const files = [];
 
-  for (const name of await fs.readdir(DATA_DIR)) {
-    if (!name.endsWith('.json')) continue;
-    const absolute = path.join(DATA_DIR, name);
-    const stat = await fs.stat(absolute);
-    let recordCount = 0;
-    try {
-      recordCount = (await readRecords(absolute)).length;
-    } catch {
-      recordCount = 0;
+  // Bundled sources at the top level, uploaded ones in their own folder.
+  for (const [dir, prefix] of [[DATA_DIR, ''], [UPLOAD_DIR, 'uploads/']]) {
+    for (const name of await fs.readdir(dir)) {
+      if (!name.endsWith('.json')) continue;
+      const absolute = path.join(dir, name);
+      const stat = await fs.stat(absolute);
+      let recordCount = 0;
+      try {
+        recordCount = (await readRecords(absolute)).length;
+      } catch {
+        recordCount = 0;
+      }
+      files.push({
+        name,
+        path: `${prefix}${name}`,
+        size_mb: Number((stat.size / 1024 / 1024).toFixed(3)),
+        record_count: recordCount,
+        type: 'original',
+        parent_file: null,
+      });
     }
-    files.push({
-      name,
-      path: name,
-      size_mb: Number((stat.size / 1024 / 1024).toFixed(3)),
-      record_count: recordCount,
-      type: 'original',
-      parent_file: null,
-    });
   }
 
   for (const name of await fs.readdir(PROCESSED_DIR)) {
@@ -336,7 +369,11 @@ async function runJob(job, request) {
 // ---------------------------------------------------------------------------
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: (origin, callback) => callback(null, isAllowedOrigin(origin)),
+  }),
+);
 app.use(express.json({ limit: '10mb' }));
 
 const upload = multer({
@@ -377,13 +414,26 @@ app.post('/upload', upload.single('file'), async (request, response) => {
     return response.status(400).json({ error: 'Uploaded file is not valid JSON.' });
   }
 
-  const safe = path
+  const stem = path
     .basename(request.file.originalname || 'upload.json')
     .replace(/[^A-Za-z0-9._-]/g, '_')
-    .replace(/\.json$/i, '') + '.json';
+    .replace(/\.json$/i, '') || 'upload';
 
-  await fs.writeFile(path.join(DATA_DIR, safe), request.file.buffer);
-  response.json({ file_id: safe, message: `Saved as ${safe}` });
+  // Never overwrite: an upload with a name that already exists gets a suffix.
+  // Uploads live in their own folder, apart from the bundled sample data.
+  await fs.mkdir(UPLOAD_DIR, { recursive: true });
+  let name = `${stem}.json`;
+  for (let n = 2; ; n++) {
+    try {
+      await fs.access(path.join(UPLOAD_DIR, name));
+      name = `${stem}-${n}.json`;
+    } catch {
+      break;
+    }
+  }
+
+  await fs.writeFile(path.join(UPLOAD_DIR, name), request.file.buffer, { flag: 'wx' });
+  response.json({ file_id: `uploads/${name}`, message: `Saved as uploads/${name}` });
 });
 
 app.post('/embed/process', async (request, response) => {
@@ -522,9 +572,10 @@ app.use((error, _request, response, _next) => {
 });
 
 await fs.mkdir(PROCESSED_DIR, { recursive: true });
+await fs.mkdir(UPLOAD_DIR, { recursive: true });
 
-app.listen(PORT, () => {
-  console.log(`[server] listening on http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`[server] listening on http://${HOST}:${PORT}`);
   console.log(`[server] data directory: ${DATA_DIR}`);
   // Start the download now so the first embedding job does not pay for it.
   loadModel().catch((error) => console.error(`[model] failed to load: ${error.message}`));
