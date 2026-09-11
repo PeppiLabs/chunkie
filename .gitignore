@@ -1,0 +1,37 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Backend: downloaded model weights and files derived from the sample data
+server/.cache
+server/data/processed
+server/data/uploads
+
+# Local environment overrides
+.env
+.env.*
+!.env.example
+
+# Local scratch scripts used while developing, not part of the project
+/*.mjs

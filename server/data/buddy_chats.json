@@ -1,0 +1,342 @@
+[
+  {
+    "user_id": "u-3f9a1c2e-marcus",
+    "user_name": "Marcus",
+    "date": "2026-05-04",
+    "chat_history": [
+      {
+        "question": "I want to start running but I have not exercised in years. Where do I begin?",
+        "answer": "Start smaller than feels necessary. Three sessions this week, twenty minutes each, alternating one minute of jogging with two minutes of walking. The goal for the first month is showing up, not distance.",
+        "timestamp": "2026-05-04T08:20:00",
+        "memory_type": "goal",
+        "importance": 0.85,
+        "emotion": 0.4
+      },
+      {
+        "question": "Do I need proper running shoes or will my old trainers do?",
+        "answer": "Old trainers are fine for the first couple of weeks while you find out whether you enjoy it. If you are still going after a month, get fitted at a running shop. Worn out cushioning is the usual cause of early shin pain.",
+        "timestamp": "2026-05-04T08:27:00",
+        "memory_type": "advice",
+        "importance": 0.6,
+        "emotion": 0.1
+      },
+      {
+        "question": "How do I know if I am pushing too hard?",
+        "answer": "Use the talking test. If you cannot hold a short sentence while jogging, slow down. Being out of breath is not the same as getting fitter, and going too hard early is why most people quit in week three.",
+        "timestamp": "2026-05-04T08:36:00",
+        "memory_type": "advice",
+        "importance": 0.7,
+        "emotion": 0.0
+      }
+    ]
+  },
+  {
+    "user_id": "u-3f9a1c2e-marcus",
+    "user_name": "Marcus",
+    "date": "2026-05-11",
+    "chat_history": [
+      {
+        "question": "I did three runs this week and my calves are killing me.",
+        "answer": "That is normal in week one, especially the calves. Stretch them after each run, not before, and take a rest day between sessions. If the pain is sharp or one sided rather than a general ache, that is different and worth resting properly.",
+        "timestamp": "2026-05-11T08:56:00",
+        "memory_type": "health",
+        "importance": 0.75,
+        "emotion": -0.3
+      },
+      {
+        "question": "Should I run through it or rest?",
+        "answer": "Rest two days, then try a walk only session. Ache that fades within a day of rest is soreness. Ache that stays or gets worse with each run is an injury forming, and the fix for that is stopping early rather than pushing on.",
+        "timestamp": "2026-05-11T09:03:00",
+        "memory_type": "health",
+        "importance": 0.8,
+        "emotion": -0.2
+      },
+      {
+        "question": "What should I eat before a morning run?",
+        "answer": "For a twenty minute run, nothing is fine, or half a banana if you feel empty. Save proper fuelling for runs over an hour. A big breakfast right before is the thing to avoid.",
+        "timestamp": "2026-05-11T09:10:00",
+        "memory_type": "advice",
+        "importance": 0.5,
+        "emotion": 0.2
+      }
+    ]
+  },
+  {
+    "user_id": "u-3f9a1c2e-marcus",
+    "user_name": "Marcus",
+    "date": "2026-05-25",
+    "chat_history": [
+      {
+        "question": "I ran for fifteen minutes without stopping today.",
+        "answer": "That is a real milestone, and three weeks in is early to hit it. The walking breaks were building exactly this. Keep the same routine for another fortnight before adding time, so it becomes something your body expects rather than something it survives.",
+        "timestamp": "2026-05-25T21:50:00",
+        "memory_type": "milestone",
+        "importance": 0.9,
+        "emotion": 0.9
+      },
+      {
+        "question": "Can I sign up for a 5K in June?",
+        "answer": "Yes, if you treat finishing as the goal and forget the clock. Pick one at least five weeks out. Between now and then add five minutes to one run each week, and keep the other two as they are.",
+        "timestamp": "2026-05-25T21:57:00",
+        "memory_type": "goal",
+        "importance": 0.85,
+        "emotion": 0.7
+      },
+      {
+        "question": "My knee felt odd on the downhill part. Should I worry?",
+        "answer": "Downhill is where the outside of the knee complains first, usually from tight hips rather than the knee itself. Skip hills for a week and add a few minutes of hip and glute work after runs. If it persists on flat ground, get it looked at.",
+        "timestamp": "2026-05-25T22:08:00",
+        "memory_type": "health",
+        "importance": 0.7,
+        "emotion": -0.1
+      }
+    ]
+  },
+  {
+    "user_id": "u-3f9a1c2e-marcus",
+    "user_name": "Marcus",
+    "date": "2026-06-14",
+    "chat_history": [
+      {
+        "question": "I finished the 5K. Thirty four minutes.",
+        "answer": "From not exercising in years to a finished 5K in six weeks is a genuine achievement, and thirty four minutes is a solid first time. Take this week easy and let it sink in before deciding what is next.",
+        "timestamp": "2026-06-14T21:48:00",
+        "memory_type": "milestone",
+        "importance": 0.95,
+        "emotion": 1.0
+      },
+      {
+        "question": "What next? I do not want to lose this.",
+        "answer": "The thing that keeps people going is not a bigger race, it is a routine that does not depend on motivation. Three fixed mornings a week, same times, no decisions to make. Add a longer weekend run only once that feels automatic.",
+        "timestamp": "2026-06-14T21:55:00",
+        "memory_type": "goal",
+        "importance": 0.8,
+        "emotion": 0.6
+      }
+    ]
+  },
+  {
+    "user_id": "u-7b2d4e8a-lena",
+    "user_name": "Lena",
+    "date": "2026-05-06",
+    "chat_history": [
+      {
+        "question": "I keep opening my laptop at nine at night to check work email and I hate it.",
+        "answer": "The checking is a habit loop, not a decision. Move the email app off your phone home screen and set a hard stop, say seven, where the laptop closes and goes in a drawer. Making it physically inconvenient works better than willpower.",
+        "timestamp": "2026-05-06T21:15:00",
+        "memory_type": "wellbeing",
+        "importance": 0.85,
+        "emotion": -0.4
+      },
+      {
+        "question": "But what if something urgent comes in?",
+        "answer": "In most jobs nothing that arrives at nine needs an answer before nine the next morning, and if it truly does, someone will call. Try it for two weeks and count how many real emergencies you missed. The number is usually zero.",
+        "timestamp": "2026-05-06T21:22:00",
+        "memory_type": "advice",
+        "importance": 0.7,
+        "emotion": -0.1
+      }
+    ]
+  },
+  {
+    "user_id": "u-7b2d4e8a-lena",
+    "user_name": "Lena",
+    "date": "2026-05-13",
+    "chat_history": [
+      {
+        "question": "I did the drawer thing. Four days without evening email.",
+        "answer": "Four days is enough to notice a difference, and you are already noticing it. Expect a wobble around day ten when a busy week makes it feel justified again. That is the moment the habit is actually formed, if you hold it.",
+        "timestamp": "2026-05-13T08:07:00",
+        "memory_type": "milestone",
+        "importance": 0.8,
+        "emotion": 0.7
+      },
+      {
+        "question": "My manager messaged at eight and I did not reply until morning. Nothing bad happened.",
+        "answer": "That is the evidence you needed. Nobody remembers a reply that came at nine the next morning, and you got an evening back. Keep a note of these, because on a stressful day you will forget they happened.",
+        "timestamp": "2026-05-13T08:16:00",
+        "memory_type": "wellbeing",
+        "importance": 0.75,
+        "emotion": 0.6
+      },
+      {
+        "question": "How do I stop thinking about work even when the laptop is closed?",
+        "answer": "Write tomorrow's first task on paper before you close the laptop. The brain keeps a loop open for unfinished things, and writing the next step down closes it. It sounds too simple and it works for most people within a week.",
+        "timestamp": "2026-05-13T08:13:00",
+        "memory_type": "advice",
+        "importance": 0.8,
+        "emotion": 0.2
+      }
+    ]
+  },
+  {
+    "user_id": "u-7b2d4e8a-lena",
+    "user_name": "Lena",
+    "date": "2026-05-27",
+    "chat_history": [
+      {
+        "question": "I want to learn guitar but I am worried I am too old to start.",
+        "answer": "Adults learn guitar faster than children in the first year, because you practise deliberately and understand what you are aiming at. The only real disadvantage is thinking you should already be good. Ten minutes a day beats an hour on Sunday.",
+        "timestamp": "2026-05-27T21:00:00",
+        "memory_type": "goal",
+        "importance": 0.85,
+        "emotion": 0.5
+      },
+      {
+        "question": "Acoustic or electric to start?",
+        "answer": "Whichever you actually want to play. Electric is physically easier on the fingers because the strings are lighter, so if you are undecided, electric plus a small practice amp gets more people past the sore fingertip stage.",
+        "timestamp": "2026-05-27T21:08:00",
+        "memory_type": "advice",
+        "importance": 0.6,
+        "emotion": 0.3
+      },
+      {
+        "question": "How long until my fingers stop hurting?",
+        "answer": "Two to three weeks of short daily practice. The fingertips harden and it stops. Everyone who quits guitar quits in those first three weeks, so it is worth knowing the pain is temporary and universal.",
+        "timestamp": "2026-05-27T21:12:00",
+        "memory_type": "advice",
+        "importance": 0.7,
+        "emotion": -0.2
+      }
+    ]
+  },
+  {
+    "user_id": "u-7b2d4e8a-lena",
+    "user_name": "Lena",
+    "date": "2026-06-10",
+    "chat_history": [
+      {
+        "question": "I can play three chords and switch between two of them without looking.",
+        "answer": "That is the hard part done. Three chords is enough for hundreds of songs, and switching without looking means your hand has learned the shapes. From here it is songs, not exercises. Pick one you like that uses those three.",
+        "timestamp": "2026-06-10T19:13:00",
+        "memory_type": "milestone",
+        "importance": 0.9,
+        "emotion": 0.9
+      },
+      {
+        "question": "Any song suggestions with just those chords?",
+        "answer": "Most folk and early rock songs use three chords. Look up any song you like and search its name with the word chords. If the chart shows more than four, skip it for now. The point is playing something you recognise, because that is what keeps you practising.",
+        "timestamp": "2026-06-10T19:18:00",
+        "memory_type": "advice",
+        "importance": 0.6,
+        "emotion": 0.6
+      }
+    ]
+  },
+  {
+    "user_id": "u-c19e5d07-aisha",
+    "user_name": "Aisha",
+    "date": "2026-05-09",
+    "chat_history": [
+      {
+        "question": "I am planning ten days in Portugal in October. Where should I base myself?",
+        "answer": "Fly into Porto, then work down the coast by train. Porto for four nights, Coimbra for two, Lisbon for four. The trains are cheap, frequent and comfortable, so you can skip the car entirely.",
+        "timestamp": "2026-05-09T19:59:00",
+        "memory_type": "travel",
+        "importance": 0.85,
+        "emotion": 0.6
+      },
+      {
+        "question": "Is October too late for warm weather?",
+        "answer": "Early October is close to ideal. Still warm, far fewer people than summer, and prices drop noticeably. Later in the month you may get rain in Porto, so put Porto first and Lisbon last.",
+        "timestamp": "2026-05-09T20:08:00",
+        "memory_type": "travel",
+        "importance": 0.7,
+        "emotion": 0.4
+      },
+      {
+        "question": "What is Coimbra actually like? Worth two nights?",
+        "answer": "An old university town on a hill, quieter than the other two, with one very good library and a lot of stairs. Two nights is right. Three would be too many unless you want a slow day with nothing planned.",
+        "timestamp": "2026-05-09T20:11:00",
+        "memory_type": "travel",
+        "importance": 0.6,
+        "emotion": 0.3
+      }
+    ]
+  },
+  {
+    "user_id": "u-c19e5d07-aisha",
+    "user_name": "Aisha",
+    "date": "2026-05-16",
+    "chat_history": [
+      {
+        "question": "Booked. Porto on the second, home from Lisbon on the twelfth.",
+        "answer": "Good dates. Book the couple of restaurants you care about a week ahead, because the well known ones fill on weekends. Everything else you can walk into. Do not over plan the days, the coast is best on foot with no schedule.",
+        "timestamp": "2026-05-16T08:46:00",
+        "memory_type": "milestone",
+        "importance": 0.8,
+        "emotion": 0.8
+      },
+      {
+        "question": "Do I need to speak Portuguese?",
+        "answer": "No. English is widely spoken in all three cities, especially by anyone under forty. Learning please, thank you and good morning goes a long way and people visibly appreciate it, but you will not be stuck.",
+        "timestamp": "2026-05-16T08:49:00",
+        "memory_type": "travel",
+        "importance": 0.5,
+        "emotion": 0.3
+      },
+      {
+        "question": "I always overpack. Help.",
+        "answer": "Lay out what you plan to take, then remove a third. One pair of walking shoes you already trust, not new ones. Everything else you can buy there if you truly need it, and you will not.",
+        "timestamp": "2026-05-16T09:00:00",
+        "memory_type": "advice",
+        "importance": 0.6,
+        "emotion": 0.2
+      }
+    ]
+  },
+  {
+    "user_id": "u-c19e5d07-aisha",
+    "user_name": "Aisha",
+    "date": "2026-06-02",
+    "chat_history": [
+      {
+        "question": "My grandmother's recipe for lentil stew never comes out as thick as hers did.",
+        "answer": "Start with less water than the recipe says, about three parts to one, and add only if it needs it. You cannot take water out. Also blend a ladleful and stir it back in near the end, which thickens it without changing the taste.",
+        "timestamp": "2026-06-02T19:18:00",
+        "memory_type": "cooking",
+        "importance": 0.75,
+        "emotion": 0.2
+      },
+      {
+        "question": "She used red lentils. Does that matter?",
+        "answer": "A lot. Red lentils collapse into a puree, brown and green hold their shape. If yours is thin and the lentils are still whole, you have the wrong type. If they have collapsed and it is still thin, it is the water.",
+        "timestamp": "2026-06-02T19:22:00",
+        "memory_type": "cooking",
+        "importance": 0.7,
+        "emotion": 0.1
+      },
+      {
+        "question": "What spices would she have used? I never wrote it down.",
+        "answer": "For a classic version, cumin, turmeric and a little chilli, with onion and garlic cooked slowly at the start. Add a squeeze of lemon at the end. Make it once plainly, then adjust toward what you remember. Taste memory is surprisingly reliable.",
+        "timestamp": "2026-06-02T19:34:00",
+        "memory_type": "cooking",
+        "importance": 0.65,
+        "emotion": 0.4
+      }
+    ]
+  },
+  {
+    "user_id": "u-c19e5d07-aisha",
+    "user_name": "Aisha",
+    "date": "2026-06-20",
+    "chat_history": [
+      {
+        "question": "Made the stew for my parents. Dad said it tasted like hers.",
+        "answer": "That is the best review a recipe can get. Write down exactly what you did this time, quantities and all, while it is fresh. That is how the recipe stops being lost twice.",
+        "timestamp": "2026-06-20T19:01:00",
+        "memory_type": "milestone",
+        "importance": 0.95,
+        "emotion": 1.0
+      },
+      {
+        "question": "I want to cook more from scratch but weeknights are chaos.",
+        "answer": "Cook once, eat three times. Sunday afternoon, one big pot of something that improves overnight, like that stew or a ragu. Weeknights become reheating plus a salad, and you still get proper food.",
+        "timestamp": "2026-06-20T19:09:00",
+        "memory_type": "advice",
+        "importance": 0.7,
+        "emotion": 0.3
+      }
+    ]
+  }
+]
