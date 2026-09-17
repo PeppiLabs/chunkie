@@ -175,6 +175,15 @@ export function chunkTranscript(transcript: Transcript, options: ChunkOptions): 
       return chunkFixedWindow(messages, options.size, options.overlap);
     case 'per-conversation':
       return chunkPerConversation(messages, options.groupSize);
+    case 'paragraph':
+      return messages.map((message, index) => ({
+        id: `c${index}`,
+        index,
+        text: formatMessage(message),
+        messageIds: [message.id],
+        speakers: [message.speaker],
+        overlapChars: 0,
+      }));
     case 'per-message':
     default:
       return chunkPerMessage(messages);
@@ -200,6 +209,11 @@ export const STRATEGY_INFO: Record<
     title: 'Groups of messages',
     blurb: 'Consecutive messages are kept together so a question and its answer stay in one piece.',
     tradeoff: 'Keeps context intact, but a large group can bury one useful line among many.',
+  },
+  paragraph: {
+    title: 'Paragraph / section',
+    blurb: 'Preserves each paragraph, Markdown section, or table row as its own chunk.',
+    tradeoff: 'Natural boundaries preserved, but paragraph length varies widely.',
   },
 };
 

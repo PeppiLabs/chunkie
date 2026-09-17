@@ -150,3 +150,32 @@ describe('structured content and honest reporting', () => {
     expect(result.messages.map((m) => m.text)).toEqual(['a message', 'another message']);
   });
 });
+
+describe('multi-format parsing (Markdown, CSV, TXT)', () => {
+  it('parses Markdown documents into sections by heading', () => {
+    const md = `# Overview\nThis is the overview.\n\n## Architecture\nHere is how RAG works.`;
+    const result = parseTranscript('guide.md', md);
+    expect(result.docType).toBe('markdown');
+    expect(result.messages).toHaveLength(2);
+    expect(result.messages[0].speaker).toBe('Overview');
+    expect(result.messages[0].text).toBe('This is the overview.');
+    expect(result.messages[1].speaker).toBe('Architecture');
+  });
+
+  it('parses CSV files into rows', () => {
+    const csv = `Question,Answer\nWhat is RAG?,Retrieval augmented generation\nWhy chunk?,To fit context`;
+    const result = parseTranscript('data.csv', csv);
+    expect(result.docType).toBe('csv');
+    expect(result.messages).toHaveLength(2);
+    expect(result.messages[0].text).toBe('Retrieval augmented generation');
+  });
+
+  it('parses plain text files into paragraphs', () => {
+    const txt = `First paragraph of text.\n\nSecond paragraph of text.`;
+    const result = parseTranscript('notes.txt', txt);
+    expect(result.docType).toBe('text');
+    expect(result.messages).toHaveLength(2);
+    expect(result.messages[0].text).toBe('First paragraph of text.');
+    expect(result.messages[1].text).toBe('Second paragraph of text.');
+  });
+});

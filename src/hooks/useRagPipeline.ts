@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { chunkTranscript, DEFAULT_CHUNK_OPTIONS } from '../lib/chunk';
 import { Embedder } from '../lib/embedder';
 import { cosineSimilarity, projectTo2D, type Projection } from '../lib/vector';
-import { parseTranscript, MAX_FILE_BYTES } from '../lib/parse';
+import { parseFile, parseTranscript, MAX_FILE_BYTES } from '../lib/parse';
 import type {
   ChunkOptions,
   EmbedProgress,
@@ -135,8 +135,8 @@ export function useRagPipeline() {
     }
 
     try {
-      const raw = await file.text();
-      setTranscript(parseTranscript(file.name, raw));
+      const parsed = await parseFile(file);
+      setTranscript(parsed);
       // Stay on this step so the visitor can read the transcript before chunking.
       // The model download starts now regardless, so it is ready when they need it.
       embedderRef.current?.warm();
