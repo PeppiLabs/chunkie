@@ -118,15 +118,27 @@ describe('all 18 strategies execute successfully', () => {
     expect(chunks.length).toBeGreaterThan(1);
   });
 
-  it('handles custom punctuation symbols', () => {
-    const sample = transcriptOf(['Hello world. How are you? Fine, thanks!']);
+  it('handles custom punctuation symbols with spaced punctuation rule', () => {
+    // 5.6 and 1,000 should not be split mid-number
+    const sample = transcriptOf(['The version 5.6 update costs $1,000. It is great. Really!']);
     const chunks = chunkTranscript(sample, {
       ...DEFAULT_CHUNK_OPTIONS,
       strategy: 'symbol',
-      splitSymbols: '.!?',
+      splitSymbols: '.!',
       piecesPerChunk: 1,
     });
-    expect(chunks.length).toBeGreaterThan(0);
+    expect(chunks.length).toBe(3);
+    expect(chunks[0].text).toContain('5.6 update costs $1,000.');
+    expect(chunks[1].text).toContain('It is great.');
+    expect(chunks[2].text).toContain('Really!');
+  });
+
+  it('includes chat strategies in structure family', () => {
+    const chatIds = ['per-message', 'per-conversation', 'session', 'day-wise'];
+    for (const id of chatIds) {
+      const item = STRATEGY_CATALOG.find((s) => s.id === id);
+      expect(item?.family).toBe('structure');
+    }
   });
 
   it('handles whole document strategy', () => {
@@ -178,7 +190,49 @@ describe('all 18 strategies execute successfully', () => {
   });
 });
 
-describe('personalization & context prefixing', () => {
+describe('personalization & context prefixing & exclusions', () => {
+  it('leaves out sections named in excludeSections', () => {
+    const doc: Transcript = {
+      sourceName: 'thesis.md',
+      messages: [
+        { id: 'm1', speaker: '1 Introduction', text: 'Important background.', timestamp: '' },
+        { id: 'm2', speaker: '7 References', text: '1. Vaswani et al. Attention is all you need.', timestamp: '' },
+        { id: 'm3', speaker: 'Appendix A', text: 'Extra raw survey data.', timestamp: '' },
+      ],
+      speakers: ['1 Introduction', '7 References', 'Appendix A'],
+      skipped: 0,
+    };
+    const chunks = chunkTranscript(doc, {
+      ...DEFAULT_CHUNK_OPTIONS,
+      strategy: 'section',
+      excludeSections: 'References, Appendix',
+    });
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0].text).toContain('Important background.');
+    expect(chunks[0].text).not.toContain('Vaswani');
+    expect(chunks[0].text).not.toContain('survey data');
+  });
+
+  it('leaves out people named in excludePeople', () => {
+    const sample: Transcript = {
+      sourceName: 'chat.json',
+      messages: [
+        { id: 'm1', speaker: 'User', text: 'What is the score?', timestamp: '' },
+        { id: 'm2', speaker: 'Bot', text: 'The score is 42.', timestamp: '' },
+        { id: 'm3', speaker: 'System', text: 'System log: ping 20ms.', timestamp: '' },
+      ],
+      speakers: ['User', 'Bot', 'System'],
+      skipped: 0,
+    };
+    const chunks = chunkTranscript(sample, {
+      ...DEFAULT_CHUNK_OPTIONS,
+      strategy: 'per-message',
+      excludePeople: 'System',
+    });
+    expect(chunks).toHaveLength(2);
+    expect(chunks.some((c) => c.text.includes('System log'))).toBe(false);
+  });
+
   it('prepends document title when contextTitle is enabled', () => {
     const sample = transcriptOf(['Hello']);
     const chunks = chunkTranscript(sample, {

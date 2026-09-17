@@ -30,6 +30,8 @@ export const DEFAULT_CHUNK_OPTIONS: ChunkOptions = {
   contextHeadingPath: true,
   contextTitle: false,
   contextPrefix: '',
+  excludeSections: '',
+  excludePeople: '',
   minChunkSize: 0,
 };
 
@@ -45,9 +47,8 @@ export interface StrategyCatalogItem {
 
 export const STRATEGY_FAMILIES: { id: ChunkFamily; label: string; description: string }[] = [
   { id: 'size', label: 'Cut by Size', description: 'Equal slices, sentence packing, recursive splits, or symbols' },
-  { id: 'structure', label: 'Along Structure', description: 'Headings, sections, paragraphs, tables, pages, or code' },
+  { id: 'structure', label: 'Along Structure', description: 'Headings, sections, paragraphs, chat exchanges, tables, pages, or code' },
   { id: 'meaning', label: 'Meaning Shifts', description: 'Cut where semantic similarity drops or topics shift' },
-  { id: 'chat', label: 'Chat Exports', description: 'Speaker turns, exchanges, conversation sessions, or days' },
 ];
 
 export const STRATEGY_CATALOG: StrategyCatalogItem[] = [
@@ -178,10 +179,10 @@ export const STRATEGY_CATALOG: StrategyCatalogItem[] = [
     tradeoff: 'Captures topic shifts, but can generate uneven chunk sizes',
   },
 
-  // Chat Family
+  // Structure Family - Chat Exports
   {
     id: 'per-message',
-    family: 'chat',
+    family: 'structure',
     label: 'Message-wise',
     cuts: 'One chunk per message or speaker turn',
     bestFor: 'Pinpointing an exact single answer or question',
@@ -190,7 +191,7 @@ export const STRATEGY_CATALOG: StrategyCatalogItem[] = [
   },
   {
     id: 'per-conversation',
-    family: 'chat',
+    family: 'structure',
     label: 'Message count',
     cuts: 'A set number of consecutive exchanges kept together',
     bestFor: 'Conversations where question and reply need to stay together',
@@ -199,7 +200,7 @@ export const STRATEGY_CATALOG: StrategyCatalogItem[] = [
   },
   {
     id: 'session',
-    family: 'chat',
+    family: 'structure',
     label: 'Sessions',
     cuts: 'Exchanges grouped until a silence gap indicates the person paused',
     bestFor: 'Support logs, messaging history, or intermittent consultation chats',
@@ -208,7 +209,7 @@ export const STRATEGY_CATALOG: StrategyCatalogItem[] = [
   },
   {
     id: 'day-wise',
-    family: 'chat',
+    family: 'structure',
     label: 'Day-wise',
     cuts: 'Everything said on a single calendar day grouped together',
     bestFor: 'Daily summaries, journal entries, or daily meeting standups',
@@ -527,18 +528,53 @@ function chunkBySentence(messages: ChatMessage[], size: number, respectParagraph
   return chunks;
 }
 
+const SPACED_PUNCTUATION = '.!?,;:';
+const CLOSERS = new Set(['"', "'", ')', ']', '}', '”', '’', '»']);
+
+/** Splits text at chosen punctuation symbols, keeping decimals like 5.6 intact unless followed by space. */
+export function splitAtSymbols(text: string, symbols: string): string[] {
+  const chosen = new Set([...symbols].filter((c) => !/[\p{L}\p{N}\s]/u.test(c)));
+  if (chosen.size === 0) return [text];
+
+  const pieces: string[] = [];
+  let start = 0;
+
+  for (let i = 0; i < text.length; i++) {
+    if (!chosen.has(text[i])) continue;
+
+    let end = i;
+    while (end + 1 < text.length && chosen.has(text[end + 1])) end++;
+    while (end + 1 < text.length && CLOSERS.has(text[end + 1])) end++;
+
+    const run = text.slice(i, end + 1);
+    const needsSpace = [...run].every((c) => SPACED_PUNCTUATION.includes(c) || CLOSERS.has(c));
+    const followedBySpace = end + 1 >= text.length || /\s/.test(text[end + 1]);
+
+    if (needsSpace && !followedBySpace) {
+      // Numbers like 5.6 or 1,000 stay intact
+      continue;
+    }
+
+    const piece = text.slice(start, end + 1).trim();
+    if (piece) pieces.push(piece);
+    start = end + 1;
+    i = end;
+  }
+
+  const remainder = text.slice(start).trim();
+  if (remainder) pieces.push(remainder);
+  return pieces.length > 0 ? pieces : [text];
+}
+
 /** 6. By custom punctuation symbols. */
 function chunkBySymbols(messages: ChatMessage[], symbols = '.!?', piecesPerChunk = 2): Chunk[] {
   const chunks: Chunk[] = [];
-  const safeSymbols = symbols.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&') || '\\.';
-  const regex = new RegExp(`([^${safeSymbols}]+[${safeSymbols}]+)`, 'g');
   const fullText = messages.map(formatMessage).join('\n');
-
-  const pieces = fullText.match(regex) || [fullText];
+  const pieces = splitAtSymbols(fullText, symbols);
   const step = Math.max(1, piecesPerChunk);
 
   for (let i = 0; i < pieces.length; i += step) {
-    const group = pieces.slice(i, i + step).join('').trim();
+    const group = pieces.slice(i, i + step).join(' ').trim();
     if (group) {
       chunks.push({
         id: `c${chunks.length}`,
@@ -975,13 +1011,49 @@ function applyPersonalization(chunks: Chunk[], transcript: Transcript, options: 
   });
 }
 
+// Filters out messages/sections based on user exclusions
+function filterExcluded(messages: ChatMessage[], options: ChunkOptions): ChatMessage[] {
+  let filtered = messages;
+
+  if (options.excludePeople && options.excludePeople.trim()) {
+    const excluded = options.excludePeople
+      .toLowerCase()
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (excluded.length > 0) {
+      filtered = filtered.filter(
+        (m) => !excluded.some((name) => m.speaker && m.speaker.toLowerCase().includes(name))
+      );
+    }
+  }
+
+  if (options.excludeSections && options.excludeSections.trim()) {
+    const excluded = options.excludeSections
+      .toLowerCase()
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (excluded.length > 0) {
+      filtered = filtered.filter((m) => {
+        if (!m.speaker) return true;
+        const cleanName = m.speaker.replace(/^[#\d\s.:-]+/, '').trim().toLowerCase();
+        return !excluded.some((name) => cleanName.startsWith(name) || cleanName.includes(name));
+      });
+    }
+  }
+
+  return filtered;
+}
+
 // ---------------------------------------------------------------------------
 // Main Entry Point
 // ---------------------------------------------------------------------------
 
 export function chunkTranscript(transcript: Transcript, options: ChunkOptions): Chunk[] {
-  const { messages } = transcript;
-  if (!messages || messages.length === 0) return [];
+  const rawMessages = filterExcluded(transcript.messages || [], options);
+  if (!rawMessages || rawMessages.length === 0) return [];
+  const messages = rawMessages;
   let rawChunks: Chunk[];
 
   switch (options.strategy) {

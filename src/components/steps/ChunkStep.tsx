@@ -17,6 +17,17 @@ interface ChunkStepProps {
 
 const MAX_VISIBLE_CHUNKS = 60;
 
+const SYMBOL_CHOICES: { symbol: string; name: string }[] = [
+  { symbol: '.', name: 'Full stop' },
+  { symbol: '?', name: 'Question mark' },
+  { symbol: '!', name: 'Exclamation mark' },
+  { symbol: ',', name: 'Comma' },
+  { symbol: ';', name: 'Semicolon' },
+  { symbol: ':', name: 'Colon' },
+];
+
+const SECTION_SUGGESTIONS = ['References', 'Bibliography', 'Appendix', 'Contents', 'Acknowledgements'];
+
 export function ChunkStep({
   transcript,
   chunks,
@@ -46,7 +57,51 @@ export function ChunkStep({
   };
 
   /** Changes whenever the chunking does, which restarts the reveal. */
-  const revealKey = `${options.strategy}-${options.size}-${options.overlap}-${options.groupSize}-${options.splitSymbols}-${options.piecesPerChunk}-${options.respectHeadings}-${options.respectParagraphs}-${options.splitLong}-${options.tocDepth}-${options.pagesPerChunk}-${options.rowsPerChunk}-${options.sensitivity}-${options.gapMinutes}-${options.contextHeadingPath}-${options.contextTitle}-${options.minChunkSize}`;
+  const revealKey = `${options.strategy}-${options.size}-${options.overlap}-${options.groupSize}-${options.splitSymbols}-${options.piecesPerChunk}-${options.respectHeadings}-${options.respectParagraphs}-${options.splitLong}-${options.tocDepth}-${options.pagesPerChunk}-${options.rowsPerChunk}-${options.sensitivity}-${options.gapMinutes}-${options.contextHeadingPath}-${options.contextTitle}-${options.contextPrefix}-${options.excludeSections}-${options.excludePeople}-${options.minChunkSize}`;
+
+  // Symbol selection helper logic
+  const currentSymbols = options.splitSymbols ?? '.!?';
+  const commonSymbols = SYMBOL_CHOICES.map((c) => c.symbol);
+  const toggledSymbols = [...currentSymbols].filter((c) => commonSymbols.includes(c));
+  const otherSymbols = [...currentSymbols].filter((c) => !commonSymbols.includes(c)).join('');
+
+  const combineSymbols = (on: string[], typed: string) => {
+    const combined = [...new Set([...on, ...typed].filter((c) => !/[\p{L}\p{N}\s]/u.test(c)))].join('');
+    update({ splitSymbols: combined });
+  };
+
+  // Section & People suggestions
+  const currentExcludedSections = (options.excludeSections || '')
+    .toLowerCase()
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const availableSectionSuggestions = SECTION_SUGGESTIONS.filter(
+    (name) => !currentExcludedSections.includes(name.toLowerCase())
+  );
+
+  const currentExcludedPeople = (options.excludePeople || '')
+    .toLowerCase()
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const availableSpeakerSuggestions = transcript.speakers.filter(
+    (name) => !currentExcludedPeople.includes(name.toLowerCase())
+  );
+
+  const addExcludedSection = (name: string) => {
+    const current = options.excludeSections ? options.excludeSections.trim() : '';
+    const updated = current ? `${current}, ${name}` : name;
+    update({ excludeSections: updated });
+  };
+
+  const addExcludedPerson = (name: string) => {
+    const current = options.excludePeople ? options.excludePeople.trim() : '';
+    const updated = current ? `${current}, ${name}` : name;
+    update({ excludePeople: updated });
+  };
 
   return (
     <StepLayout
@@ -135,6 +190,7 @@ export function ChunkStep({
                 const strategy = info.id;
                 const selected = options.strategy === strategy;
                 const recommended = isRecommended(strategy);
+                const isChatStrat = ['per-message', 'per-conversation', 'session', 'day-wise'].includes(strategy);
 
                 return (
                   <div
@@ -163,7 +219,7 @@ export function ChunkStep({
                               </span>
                             )}
                             <span className="rounded bg-ink-100 px-1.5 py-0.5 text-[10px] font-medium text-ink-600">
-                              {STRATEGY_FAMILIES.find((f) => f.id === info.family)?.label}
+                              {isChatStrat ? 'Chat Structure' : STRATEGY_FAMILIES.find((f) => f.id === info.family)?.label}
                             </span>
                           </div>
                           <span className="mt-1 block text-xs text-ink-700 leading-relaxed">
@@ -251,28 +307,68 @@ export function ChunkStep({
                         )}
 
                         {strategy === 'symbol' && (
-                          <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="space-y-3">
                             <div>
-                              <span className="block text-xs font-medium text-ink-700">
-                                Split at symbols
+                              <span className="block text-xs font-semibold text-ink-800 mb-1.5">
+                                Symbols to split at
                               </span>
-                              <input
-                                type="text"
-                                value={options.splitSymbols ?? '.!?'}
-                                onChange={(e) => update({ splitSymbols: e.target.value })}
-                                placeholder=".!?"
-                                className="mt-1.5 w-full rounded-lg border border-ink-200 px-2.5 py-1.5 text-xs text-ink-900 focus:border-brand-500 focus:outline-hidden"
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5" role="group" aria-label="Symbols to split at">
+                                {SYMBOL_CHOICES.map(({ symbol, name }) => {
+                                  const on = toggledSymbols.includes(symbol);
+                                  return (
+                                    <button
+                                      key={symbol}
+                                      type="button"
+                                      aria-pressed={on}
+                                      onClick={() =>
+                                        combineSymbols(
+                                          on ? toggledSymbols.filter((s) => s !== symbol) : [...toggledSymbols, symbol],
+                                          otherSymbols
+                                        )
+                                      }
+                                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-left transition-colors ${
+                                        on
+                                          ? 'border-brand-500 bg-brand-50/80 text-brand-800 ring-1 ring-brand-500 font-semibold shadow-xs'
+                                          : 'border-ink-200 bg-white text-ink-600 hover:border-ink-300 hover:bg-ink-50'
+                                      }`}
+                                    >
+                                      <span className="font-mono text-base font-bold leading-none w-3 text-center shrink-0">
+                                        {symbol}
+                                      </span>
+                                      <span className="text-xs leading-tight">{name}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <div>
+                                <span className="block text-xs font-medium text-ink-700">
+                                  Other symbols
+                                </span>
+                                <input
+                                  type="text"
+                                  value={otherSymbols}
+                                  placeholder="e.g. | / 。"
+                                  onChange={(e) => combineSymbols(toggledSymbols, e.target.value)}
+                                  className="mt-1 w-full rounded-lg border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-mono text-ink-900 focus:border-brand-500 focus:outline-hidden"
+                                />
+                              </div>
+                              <Slider
+                                label="Pieces per chunk"
+                                suffix="pieces"
+                                value={options.piecesPerChunk ?? 2}
+                                min={1}
+                                max={10}
+                                step={1}
+                                onChange={(piecesPerChunk) => update({ piecesPerChunk })}
                               />
                             </div>
-                            <Slider
-                              label="Pieces per chunk"
-                              suffix="pieces"
-                              value={options.piecesPerChunk ?? 2}
-                              min={1}
-                              max={10}
-                              step={1}
-                              onChange={(piecesPerChunk) => update({ piecesPerChunk })}
-                            />
+
+                            <p className="text-[11px] leading-snug text-ink-500">
+                              Punctuation only splits when a space follows, so 5.6 and 1,000 stay whole. Other symbols split wherever they appear.
+                            </p>
                           </div>
                         )}
 
@@ -513,7 +609,7 @@ export function ChunkStep({
                   Personalize for this file
                 </span>
                 <span className="rounded bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-700 border border-brand-200">
-                  Context & Merging
+                  Context, Exclusions & Merging
                 </span>
               </div>
               <span className="font-mono text-xs text-ink-500">
@@ -522,12 +618,77 @@ export function ChunkStep({
             </button>
 
             {personalizeOpen && (
-              <div className="border-t border-ink-100 p-4 space-y-3.5 bg-ink-50/30">
+              <div className="border-t border-ink-100 p-4 space-y-4 bg-ink-50/30">
                 <p className="text-xs text-ink-600">
-                  These settings prepend context headers to each chunk so the embedding model knows where each passage comes from.
+                  Customize what gets carried with each chunk and what gets left out of search.
                 </p>
 
-                <div className="grid gap-2.5 sm:grid-cols-2">
+                {/* Exclude Sections */}
+                <div>
+                  <div className="flex items-baseline justify-between">
+                    <span className="block text-xs font-semibold text-ink-800">
+                      Leave out sections named
+                    </span>
+                    <span className="text-[10px] text-ink-400">Comma-separated</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={options.excludeSections ?? ''}
+                    onChange={(e) => update({ excludeSections: e.target.value })}
+                    placeholder="e.g. References, Appendix, Bibliography"
+                    className="mt-1 w-full rounded-lg border border-ink-200 bg-white px-3 py-1.5 text-xs text-ink-900 focus:border-brand-500 focus:outline-hidden"
+                  />
+                  {availableSectionSuggestions.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1 items-center">
+                      <span className="text-[10px] text-ink-400">Add suggestion:</span>
+                      {availableSectionSuggestions.map((name) => (
+                        <button
+                          key={name}
+                          type="button"
+                          onClick={() => addExcludedSection(name)}
+                          className="rounded-md bg-white px-2 py-0.5 text-[10px] font-medium text-brand-700 border border-brand-200 hover:bg-brand-50 transition-colors"
+                        >
+                          + {name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Exclude People / Speakers */}
+                <div>
+                  <div className="flex items-baseline justify-between">
+                    <span className="block text-xs font-semibold text-ink-800">
+                      Leave out people named
+                    </span>
+                    <span className="text-[10px] text-ink-400">Comma-separated</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={options.excludePeople ?? ''}
+                    onChange={(e) => update({ excludePeople: e.target.value })}
+                    placeholder="e.g. Test user, System, Bot"
+                    className="mt-1 w-full rounded-lg border border-ink-200 bg-white px-3 py-1.5 text-xs text-ink-900 focus:border-brand-500 focus:outline-hidden"
+                  />
+                  {availableSpeakerSuggestions.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1 items-center">
+                      <span className="text-[10px] text-ink-400">From this file:</span>
+                      {availableSpeakerSuggestions.map((speaker) => (
+                        <button
+                          key={speaker}
+                          type="button"
+                          onClick={() => addExcludedPerson(speaker)}
+                          className="rounded-md bg-white px-2 py-0.5 text-[10px] font-medium text-ink-700 border border-ink-200 hover:bg-ink-100 transition-colors"
+                        >
+                          + {speaker}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Context prefixes */}
+                <div className="grid gap-2.5 sm:grid-cols-2 pt-1 border-t border-ink-100">
                   <label className="flex items-center gap-2 text-xs text-ink-700 bg-white p-2.5 rounded-lg border border-ink-200">
                     <input
                       type="checkbox"
@@ -601,7 +762,7 @@ export function ChunkStep({
 
             {chunks.length === 0 && (
               <p className="py-8 text-center text-xs text-ink-400">
-                No chunks generated with the current settings. Try another strategy or increase chunk size.
+                No chunks generated with the current settings or all items were excluded. Try adjusting exclusions or settings.
               </p>
             )}
           </div>
