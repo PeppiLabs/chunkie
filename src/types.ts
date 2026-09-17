@@ -31,7 +31,7 @@ export interface Transcript {
 }
 
 /** Strategy families grouping related chunking methods. */
-export type ChunkFamily = 'size' | 'structure' | 'meaning' | 'chat';
+export type ChunkFamily = 'size' | 'structure' | 'meaning';
 
 /** How the document or transcript gets cut into retrievable pieces. */
 export type ChunkStrategy =
@@ -41,7 +41,7 @@ export type ChunkStrategy =
   | 'sentence'
   | 'symbol'
   | 'whole'
-  // Structure
+  // Structure (including document structure and chat export structure)
   | 'section'
   | 'paragraph'
   | 'toc'
@@ -49,14 +49,13 @@ export type ChunkStrategy =
   | 'table-rows'
   | 'code'
   | 'elements'
-  // Meaning
-  | 'semantic'
-  | 'topic'
-  // Chat
   | 'per-message'
   | 'per-conversation'
   | 'session'
-  | 'day-wise';
+  | 'day-wise'
+  // Meaning
+  | 'semantic'
+  | 'topic';
 
 export interface ChunkOptions {
   strategy: ChunkStrategy;
@@ -100,6 +99,10 @@ export interface ChunkOptions {
   contextTitle?: boolean;
   /** Custom user text prefix to put in front of chunks. */
   contextPrefix?: string;
+  /** Leave out sections named (comma-separated, e.g. References, Appendix). */
+  excludeSections?: string;
+  /** Leave out people or speakers named (comma-separated, e.g. Test user). */
+  excludePeople?: string;
   /** Automatically merge chunks smaller than this character threshold. */
   minChunkSize?: number;
 }
