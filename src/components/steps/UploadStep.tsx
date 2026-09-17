@@ -158,7 +158,7 @@ export function UploadStep({ transcript, onFile, onSample, onContinue }: UploadS
             })}
           </div>
 
-          <div className="border-t border-ink-100 p-5">
+            <div className="border-t border-ink-100 p-5">
             <div
               onDragOver={(event) => {
                 event.preventDefault();
@@ -170,15 +170,15 @@ export function UploadStep({ transcript, onFile, onSample, onContinue }: UploadS
                 dragging ? 'border-brand-500 bg-brand-50' : 'border-ink-200 bg-ink-50/60'
               }`}
             >
-              <p className="text-sm text-ink-600">Drop a JSON transcript here</p>
+              <p className="text-sm font-medium text-ink-700">Drop a document or chat file here</p>
               <p className="mt-1 text-xs text-ink-500">
-                An array of messages, each with a text field. Up to 5 MB.
+                PDF, Word (.docx), Markdown (.md), Plain text (.txt), CSV, or JSON chat. Up to 25 MB.
               </p>
 
               <input
                 ref={inputRef}
                 type="file"
-                accept="application/json,.json"
+                accept=".pdf,.docx,.md,.markdown,.txt,.csv,.tsv,.json,.js,.ts,.py,.html"
                 tabIndex={-1}
                 aria-hidden="true"
                 className="sr-only"
@@ -208,12 +208,14 @@ export function UploadStep({ transcript, onFile, onSample, onContinue }: UploadS
               tone="result"
               title={transcript.sourceName}
               hint={
-                `${transcript.messages.length} messages from ${transcript.speakers.length} people` +
-                (transcript.skipped > 0
-                  ? `, and ${transcript.skipped} ${
-                      transcript.skipped === 1 ? 'entry' : 'entries'
-                    } we could not read`
-                  : '')
+                transcript.docType && transcript.docType !== 'chat'
+                  ? `${transcript.messages.length} paragraphs/sections (${transcript.docType.toUpperCase()})`
+                  : `${transcript.messages.length} messages from ${transcript.speakers.length} people` +
+                    (transcript.skipped > 0
+                      ? `, and ${transcript.skipped} ${
+                          transcript.skipped === 1 ? 'entry' : 'entries'
+                        } we could not read`
+                      : '')
               }
               aside={<Button onClick={onContinue}>Chunk it</Button>}
             />

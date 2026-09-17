@@ -26,10 +26,12 @@ export interface Transcript {
   speakers: string[];
   /** Entries in the file we could not read, reported rather than hidden. */
   skipped: number;
+  /** Format of document if known. */
+  docType?: 'chat' | 'pdf' | 'docx' | 'markdown' | 'text' | 'csv' | 'code';
 }
 
 /** How the transcript gets cut into retrievable pieces. */
-export type ChunkStrategy = 'per-message' | 'fixed-window' | 'per-conversation';
+export type ChunkStrategy = 'per-message' | 'fixed-window' | 'per-conversation' | 'paragraph';
 
 export interface ChunkOptions {
   strategy: ChunkStrategy;

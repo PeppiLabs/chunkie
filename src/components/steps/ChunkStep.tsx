@@ -14,7 +14,7 @@ interface ChunkStepProps {
   onContinue: () => void;
 }
 
-const STRATEGIES: ChunkOptions['strategy'][] = ['per-message', 'fixed-window', 'per-conversation'];
+const STRATEGIES: ChunkOptions['strategy'][] = ['per-message', 'fixed-window', 'per-conversation', 'paragraph'];
 
 /**
  * How many chunk cards to actually put in the DOM.

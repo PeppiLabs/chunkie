@@ -53,6 +53,16 @@ export const SAMPLES: Sample[] = [
       'my bread is too heavy, what now',
     ],
   },
+  {
+    path: 'samples/rag-guide.md',
+    label: 'RAG Architecture Guide (Markdown)',
+    blurb: 'A technical document explaining chunking trade-offs, vector space, and prompt injection.',
+    questions: [
+      'stopping hallucinations and made up answers',
+      'why cutting prose hurts understanding',
+      'calculating spatial alignment of vectors',
+    ],
+  },
 ];
 
 /** Questions offered when the transcript is not one of ours. */
