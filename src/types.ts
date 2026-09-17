@@ -30,17 +30,78 @@ export interface Transcript {
   docType?: 'chat' | 'pdf' | 'docx' | 'markdown' | 'text' | 'csv' | 'code';
 }
 
-/** How the transcript gets cut into retrievable pieces. */
-export type ChunkStrategy = 'per-message' | 'fixed-window' | 'per-conversation' | 'paragraph';
+/** Strategy families grouping related chunking methods. */
+export type ChunkFamily = 'size' | 'structure' | 'meaning' | 'chat';
+
+/** How the document or transcript gets cut into retrievable pieces. */
+export type ChunkStrategy =
+  // Size
+  | 'fixed-window'
+  | 'recursive'
+  | 'sentence'
+  | 'symbol'
+  | 'whole'
+  // Structure
+  | 'section'
+  | 'paragraph'
+  | 'toc'
+  | 'page'
+  | 'table-rows'
+  | 'code'
+  | 'elements'
+  // Meaning
+  | 'semantic'
+  | 'topic'
+  // Chat
+  | 'per-message'
+  | 'per-conversation'
+  | 'session'
+  | 'day-wise';
 
 export interface ChunkOptions {
   strategy: ChunkStrategy;
-  /** Target characters per chunk, used by fixed-window. */
+  /** Target characters or word pieces per chunk. */
   size: number;
-  /** Characters repeated from the previous chunk, used by fixed-window. */
+  /** Characters repeated from previous chunk. */
   overlap: number;
-  /** Messages grouped per chunk, used by per-conversation. */
+  /** Messages or units grouped per chunk. */
   groupSize: number;
+
+  // Strategy-specific options
+  /** Characters to split at for the 'symbol' strategy. */
+  splitSymbols?: string;
+  /** Number of symbol pieces to group into a chunk. */
+  piecesPerChunk?: number;
+  /** In recursive/sentence, avoid crossing heading boundaries. */
+  respectHeadings?: boolean;
+  /** In sentence, avoid crossing paragraph breaks. */
+  respectParagraphs?: boolean;
+  /** In 'whole' or 'page', whether to split chunks that exceed max size. */
+  splitLong?: boolean;
+  /** Table of contents heading depth (1 = #, 2 = ##, 3 = ###). */
+  tocDepth?: number;
+  /** Pages per chunk for paged documents. */
+  pagesPerChunk?: number;
+  /** Rows per chunk for CSV/table documents. */
+  rowsPerChunk?: number;
+  /** Table row formatting style. */
+  rowFormat?: 'pairs' | 'table';
+  /** Sensitivity threshold for semantic & topic segmentation. */
+  sensitivity?: 'fewer' | 'balanced' | 'more';
+  /** Silence gap in minutes to identify conversation sessions. */
+  gapMinutes?: number;
+  /** Maximum messages in a session. */
+  maxMessages?: number;
+
+  // Personalization settings
+  /** Put heading breadcrumbs (e.g. "Section > Subsection") in front of chunks. */
+  contextHeadingPath?: boolean;
+  /** Put document source name in front of chunks. */
+  contextTitle?: boolean;
+  /** Custom user text prefix to put in front of chunks. */
+  contextPrefix?: string;
+  /** Automatically merge chunks smaller than this character threshold. */
+  minChunkSize?: number;
 }
 
 /** One retrievable piece of the transcript. */
