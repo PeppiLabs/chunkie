@@ -172,13 +172,13 @@ export function UploadStep({ transcript, onFile, onSample, onContinue }: UploadS
             >
               <p className="text-sm font-medium text-ink-700">Drop a document or chat file here</p>
               <p className="mt-1 text-xs text-ink-500">
-                PDF, Word (.docx), Markdown (.md), Plain text (.txt), CSV, or JSON chat. Up to 25 MB.
+                PDF, Word (.docx), Excel (.xlsx, .xls), PowerPoint (.pptx), Email (.eml, .msg), HTML, Markdown, Plain text, CSV, or JSON chat. Up to 25 MB.
               </p>
 
               <input
                 ref={inputRef}
                 type="file"
-                accept=".pdf,.docx,.md,.markdown,.txt,.csv,.tsv,.json,.js,.ts,.py,.html"
+                accept=".pdf,.docx,.xlsx,.xls,.pptx,.eml,.msg,.html,.htm,.md,.markdown,.txt,.csv,.tsv,.json,.js,.ts,.py"
                 tabIndex={-1}
                 aria-hidden="true"
                 className="sr-only"

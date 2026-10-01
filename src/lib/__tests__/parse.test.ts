@@ -178,4 +178,100 @@ describe('multi-format parsing (Markdown, CSV, TXT)', () => {
     expect(result.messages[0].text).toBe('First paragraph of text.');
     expect(result.messages[1].text).toBe('Second paragraph of text.');
   });
+
+  it('parses HTML documents stripping scripts and styles', () => {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head><title>Chunkie User Guide</title><style>.hidden { display: none; }</style></head>
+        <body>
+          <nav><a>Home</a></nav>
+          <h1>Introduction to RAG</h1>
+          <p>Retrieval-Augmented Generation connects vector search with language models.</p>
+          <h2>Chunking Strategies</h2>
+          <p>Dividing text accurately ensures high semantic precision during search.</p>
+          <script>console.log('secret');</script>
+        </body>
+      </html>
+    `;
+    const result = parseTranscript('guide.html', html);
+    expect(result.docType).toBe('html');
+    expect(result.messages.length).toBeGreaterThanOrEqual(2);
+    expect(result.messages.some((m) => m.text.includes('Retrieval-Augmented Generation'))).toBe(true);
+    expect(result.messages.some((m) => m.text.includes('console.log'))).toBe(false);
+  });
+
+  it('parses Email (.eml) transcripts with headers and body', () => {
+    const email = `From: alice@example.com
+To: bob@example.com
+Subject: Project Update on RAG Visualizer
+Date: Wed, 30 Sep 2026 10:00:00 -0400
+
+Hi Bob,
+
+We have added support for Excels, PowerPoints, and Emails into Chunkie.
+
+Let me know what you think about the chunking strategies!`;
+    const result = parseTranscript('update.eml', email);
+    expect(result.docType).toBe('email');
+    expect(result.speakers).toContain('alice@example.com');
+    expect(result.messages.some((m) => m.text.includes('Subject: Project Update'))).toBe(true);
+    expect(result.messages.some((m) => m.text.includes('We have added support'))).toBe(true);
+  });
+
+  it('parses Excel spreadsheets (.xlsx) into rows with column headers', async () => {
+    const { parseExcel } = await import('../parse');
+    const XLSX = await import('xlsx');
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([
+      ['Product', 'Category', 'Price'],
+      ['Laptop', 'Electronics', '$1200'],
+      ['Desk Chair', 'Furniture', '$350'],
+    ]);
+    XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+    const u8 = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+
+    const result = await parseExcel('inventory.xlsx', u8);
+    expect(result.docType).toBe('excel');
+    expect(result.messages).toHaveLength(2);
+    expect(result.messages[0].text).toContain('Product: Laptop');
+    expect(result.messages[0].text).toContain('Price: $1200');
+    expect(result.messages[1].text).toContain('Product: Desk Chair');
+  });
+
+  it('parses PowerPoint presentations (.pptx) extracting slide texts', async () => {
+    const { parsePowerPoint } = await import('../parse');
+    const JSZipModule = await import('jszip');
+    const JSZip = JSZipModule.default || JSZipModule;
+    const zip = new JSZip();
+
+    const slide1 = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+      <p:cSld>
+        <p:spTree>
+          <p:sp><p:txBody><a:p><a:r><a:t>Introduction to Vector Search in Presentation Slides</a:t></a:r></a:p></p:txBody></p:sp>
+        </p:spTree>
+      </p:cSld>
+    </p:sld>`;
+    zip.file('ppt/slides/slide1.xml', slide1);
+
+    const slide2 = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+      <p:cSld>
+        <p:spTree>
+          <p:sp><p:txBody><a:p><a:r><a:t>Cosine Similarity and Dimensionality Reduction Deep Dive</a:t></a:r></a:p></p:txBody></p:sp>
+        </p:spTree>
+      </p:cSld>
+    </p:sld>`;
+    zip.file('ppt/slides/slide2.xml', slide2);
+
+    const buffer = await zip.generateAsync({ type: 'arraybuffer' });
+    const result = await parsePowerPoint('deck.pptx', buffer);
+    expect(result.docType).toBe('powerpoint');
+    expect(result.messages).toHaveLength(2);
+    expect(result.messages[0].speaker).toBe('Slide 1');
+    expect(result.messages[0].text).toContain('Introduction to Vector Search');
+    expect(result.messages[1].speaker).toBe('Slide 2');
+    expect(result.messages[1].text).toContain('Cosine Similarity');
+  });
 });

@@ -2,11 +2,15 @@
 setlocal
 cd /d "%~dp0"
 
+if "%1"=="--dev" goto :run_dev
+
 if exist "%~dp0chunkie.exe" (
+    echo [INFO] Launching standalone Chunkie executable...
     "%~dp0chunkie.exe" %*
     goto :eof
 )
 
+:run_dev
 echo ==================================================
 echo            Peppi Labs - Chunkie Launcher
 echo ==================================================
@@ -31,7 +35,7 @@ if not exist "node_modules\" (
     )
 )
 
-echo [INFO] Starting Chunkie...
+echo [INFO] Starting Chunkie development server...
 call npm run dev -- --open
 
 pause
