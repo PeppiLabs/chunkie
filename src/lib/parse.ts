@@ -199,6 +199,191 @@ export function parseCSV(sourceName: string, raw: string): Transcript {
   };
 }
 
+/** Parses an HTML document, stripping tags and grouping content into sections by headings. */
+export function parseHTML(sourceName: string, raw: string): Transcript {
+  const messages: ChatMessage[] = [];
+  let title = 'Document';
+
+  if (typeof DOMParser !== 'undefined') {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(raw, 'text/html');
+
+      const removeElements = doc.querySelectorAll('script, style, noscript, nav, footer, header, svg');
+      removeElements.forEach((el) => el.remove());
+
+      title =
+        doc.querySelector('title')?.textContent?.trim() ||
+        doc.querySelector('h1')?.textContent?.trim() ||
+        sourceName.replace(/\.[^.]+$/, '');
+
+      const headingsAndContent = doc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li, blockquote, pre');
+      let currentHeading = title;
+      let currentBuffer: string[] = [];
+
+      const flush = () => {
+        const text = currentBuffer.join(' ').replace(/\s+/g, ' ').trim();
+        if (text.length > 20) {
+          messages.push({
+            id: `h_${messages.length}`,
+            speaker: currentHeading,
+            text,
+            timestamp: '',
+          });
+        }
+        currentBuffer = [];
+      };
+
+      headingsAndContent.forEach((node) => {
+        const tag = node.tagName.toLowerCase();
+        const text = node.textContent?.trim();
+        if (!text) return;
+
+        if (/^h[1-6]$/.test(tag)) {
+          flush();
+          currentHeading = text;
+        } else {
+          currentBuffer.push(text);
+          if (currentBuffer.length >= 3) {
+            flush();
+          }
+        }
+      });
+      flush();
+    } catch {
+      // Fallback below
+    }
+  }
+
+  // Fallback if DOMParser unavailable or produced no chunks
+  if (messages.length === 0) {
+    const clean = raw
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<noscript[^>]*>[\s\S]*?<\/noscript>/gi, '')
+      .replace(/<[^>]+>/g, '\n')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"');
+
+    const paragraphs = clean
+      .split(/\r?\n\s*\r?\n/)
+      .map((p) => p.replace(/\s+/g, ' ').trim())
+      .filter((p) => p.length > 20);
+
+    if (paragraphs.length === 0) {
+      throw new Error('No readable text content found in this HTML document.');
+    }
+
+    paragraphs.forEach((p, idx) => {
+      messages.push({
+        id: `h_${idx}`,
+        speaker: title,
+        text: p,
+        timestamp: '',
+      });
+    });
+  }
+
+  const speakers = Array.from(new Set(messages.map((m) => m.speaker)));
+  return {
+    sourceName,
+    messages,
+    speakers,
+    skipped: 0,
+    docType: 'html',
+  };
+}
+
+/** Parses an RFC 822 / MIME email (.eml or .msg text) into structured conversation units. */
+export function parseEmail(sourceName: string, raw: string): Transcript {
+  const lines = raw.split(/\r?\n/);
+  const headers: Record<string, string> = {};
+  let bodyStartIndex = -1;
+
+  let currentHeaderKey = '';
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.trim() === '') {
+      bodyStartIndex = i + 1;
+      break;
+    }
+
+    if (/^\s+/.test(line) && currentHeaderKey) {
+      headers[currentHeaderKey] += ' ' + line.trim();
+    } else {
+      const colonIdx = line.indexOf(':');
+      if (colonIdx > 0) {
+        currentHeaderKey = line.slice(0, colonIdx).trim().toLowerCase();
+        headers[currentHeaderKey] = line.slice(colonIdx + 1).trim();
+      }
+    }
+  }
+
+  const rawBody = bodyStartIndex >= 0 ? lines.slice(bodyStartIndex).join('\n') : raw;
+
+  let cleanBody = rawBody
+    .replace(/^--[a-zA-Z0-9_-]+(?:--)?$/gm, '')
+    .replace(/=\r?\n/g, '')
+    .replace(/=20/g, ' ')
+    .replace(/=3D/g, '=');
+
+  if (
+    headers['content-type']?.includes('text/html') ||
+    cleanBody.includes('<html') ||
+    cleanBody.includes('</div>')
+  ) {
+    cleanBody = cleanBody
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"');
+  }
+
+  const from = headers['from'] || 'Unknown Sender';
+  const to = headers['to'] || '';
+  const subject = headers['subject'] || 'No Subject';
+  const date = headers['date'] || '';
+
+  const paragraphs = cleanBody
+    .split(/\r?\n\s*\r?\n/)
+    .map((p) => p.replace(/\s+/g, ' ').trim())
+    .filter((p) => p.length > 20 && !p.startsWith('Content-'));
+
+  const messages: ChatMessage[] = [];
+
+  messages.push({
+    id: 'eml_head',
+    speaker: from,
+    text: `Subject: ${subject}` + (to ? ` | To: ${to}` : ''),
+    timestamp: date,
+  });
+
+  paragraphs.forEach((p, idx) => {
+    messages.push({
+      id: `eml_${idx + 1}`,
+      speaker: from,
+      text: p,
+      timestamp: date,
+    });
+  });
+
+  const speakers = [from];
+  return {
+    sourceName,
+    messages,
+    speakers,
+    skipped: 0,
+    docType: 'email',
+  };
+}
+
 /** Parses plain text into paragraphs. */
 export function parsePlainText(sourceName: string, raw: string, docType: 'text' | 'code' = 'text'): Transcript {
   const paragraphs = raw.split(/\r?\n\s*\r?\n/).map((p) => p.trim()).filter(Boolean);
@@ -238,8 +423,27 @@ export function parseTranscript(sourceName: string, raw: string): Transcript {
     return parseCSV(sourceName, trimmed);
   }
 
+  // If HTML document
+  if (
+    lowerName.endsWith('.html') ||
+    lowerName.endsWith('.htm') ||
+    trimmed.toLowerCase().startsWith('<!doctype html') ||
+    trimmed.toLowerCase().startsWith('<html')
+  ) {
+    return parseHTML(sourceName, trimmed);
+  }
+
+  // If Email
+  if (
+    lowerName.endsWith('.eml') ||
+    lowerName.endsWith('.msg') ||
+    /^(from|received|subject|to):/i.test(trimmed)
+  ) {
+    return parseEmail(sourceName, trimmed);
+  }
+
   // If source code
-  const codeExts = ['.js', '.jsx', '.ts', '.tsx', '.py', '.java', '.go', '.rb', '.rs', '.sql', '.sh', '.html', '.css'];
+  const codeExts = ['.js', '.jsx', '.ts', '.tsx', '.py', '.java', '.go', '.rb', '.rs', '.sql', '.sh', '.css'];
   if (codeExts.some((ext) => lowerName.endsWith(ext))) {
     return parsePlainText(sourceName, trimmed, 'code');
   }
@@ -316,6 +520,13 @@ export async function parseFile(file: File): Promise<Transcript> {
       const buffer = await file.arrayBuffer();
       const pdfjsLib = await import('pdfjs-dist');
       
+      if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+          'pdfjs-dist/build/pdf.worker.min.mjs',
+          import.meta.url
+        ).toString();
+      }
+
       const loadingTask = pdfjsLib.getDocument({
         data: new Uint8Array(buffer),
         useSystemFonts: true,
@@ -404,7 +615,167 @@ export async function parseFile(file: File): Promise<Transcript> {
     }
   }
 
+  // Excel Spreadsheet (.xlsx, .xls)
+  if (lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls')) {
+    try {
+      const buffer = await file.arrayBuffer();
+      return await parseExcel(file.name, buffer);
+    } catch (err) {
+      throw new Error(`Could not parse Excel: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  // PowerPoint Presentation (.pptx)
+  if (lowerName.endsWith('.pptx')) {
+    try {
+      const buffer = await file.arrayBuffer();
+      return await parsePowerPoint(file.name, buffer);
+    } catch (err) {
+      throw new Error(`Could not parse PowerPoint: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  // Email (.eml, .msg)
+  if (lowerName.endsWith('.eml') || lowerName.endsWith('.msg')) {
+    try {
+      const text = await file.text();
+      return parseEmail(file.name, text);
+    } catch (err) {
+      throw new Error(`Could not parse Email: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  // HTML (.html, .htm)
+  if (lowerName.endsWith('.html') || lowerName.endsWith('.htm')) {
+    try {
+      const text = await file.text();
+      return parseHTML(file.name, text);
+    } catch (err) {
+      throw new Error(`Could not parse HTML: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
   // Text, Markdown, CSV, JSON, Code
   const rawText = await file.text();
   return parseTranscript(file.name, rawText);
+}
+
+/** Parses an Excel workbook (.xlsx, .xls) into rows per sheet. */
+export async function parseExcel(sourceName: string, buffer: ArrayBuffer): Promise<Transcript> {
+  const XLSX = await import('xlsx');
+  const workbook = XLSX.read(buffer, { type: 'array' });
+  const messages: ChatMessage[] = [];
+
+  for (const sheetName of workbook.SheetNames) {
+    const sheet = workbook.Sheets[sheetName];
+    if (!sheet) continue;
+
+    const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1 });
+    if (!rows || rows.length === 0) continue;
+
+    const headerRow = rows[0];
+    const headers = Array.isArray(headerRow)
+      ? headerRow.map((h, idx) => (h !== undefined && h !== null && String(h).trim() ? String(h).trim() : `Col ${idx + 1}`))
+      : [];
+
+    for (let rIdx = 1; rIdx < rows.length; rIdx++) {
+      const row = rows[rIdx];
+      if (!Array.isArray(row) || row.length === 0) continue;
+
+      const pairs: string[] = [];
+      row.forEach((cellVal, cIdx) => {
+        if (cellVal !== undefined && cellVal !== null && String(cellVal).trim()) {
+          const colName = headers[cIdx] || `Col ${cIdx + 1}`;
+          pairs.push(`${colName}: ${String(cellVal).trim()}`);
+        }
+      });
+
+      if (pairs.length > 0) {
+        messages.push({
+          id: `xl_${sheetName}_r${rIdx}`,
+          speaker: `${sheetName} (Row ${rIdx + 1})`,
+          text: pairs.join(' | '),
+          timestamp: '',
+        });
+      }
+    }
+  }
+
+  if (messages.length === 0) {
+    throw new Error('No readable data rows found in this Excel spreadsheet.');
+  }
+
+  const speakers = Array.from(new Set(messages.map((m) => m.speaker)));
+  return {
+    sourceName,
+    messages,
+    speakers,
+    skipped: 0,
+    docType: 'excel',
+  };
+}
+
+/** Parses a PowerPoint presentation (.pptx) extracting text from each slide. */
+export async function parsePowerPoint(sourceName: string, buffer: ArrayBuffer): Promise<Transcript> {
+  const JSZipModule = await import('jszip');
+  const JSZip = JSZipModule.default || JSZipModule;
+  const zip = await JSZip.loadAsync(buffer);
+
+  const messages: ChatMessage[] = [];
+  const slidePaths = Object.keys(zip.files).filter((path) =>
+    /^ppt\/slides\/slide\d+\.xml$/i.test(path),
+  );
+
+  slidePaths.sort((a, b) => {
+    const numA = parseInt(a.match(/slide(\d+)\.xml/i)?.[1] || '0', 10);
+    const numB = parseInt(b.match(/slide(\d+)\.xml/i)?.[1] || '0', 10);
+    return numA - numB;
+  });
+
+  for (let idx = 0; idx < slidePaths.length; idx++) {
+    const slidePath = slidePaths[idx];
+    const xmlText = await zip.files[slidePath].async('text');
+
+    const textMatches = xmlText.match(/<a:t(?:\s[^>]*)?>([\s\S]*?)<\/a:t>/gi) || [];
+    const textPieces = textMatches
+      .map((t) => t.replace(/<\/?a:t(?:\s[^>]*)?>/gi, '').trim())
+      .filter(Boolean);
+
+    const slideNumber = idx + 1;
+    const slideText = textPieces.join(' ').replace(/\s+/g, ' ').trim();
+
+    if (slideText) {
+      const paragraphs = slideText.split(/(?<=[.!?])\s+(?=[A-Z])/).filter((p) => p.trim().length > 25);
+      if (paragraphs.length > 1) {
+        paragraphs.forEach((p, pIdx) => {
+          messages.push({
+            id: `ppt_s${slideNumber}_p${pIdx}`,
+            speaker: `Slide ${slideNumber}`,
+            text: p.trim(),
+            timestamp: '',
+          });
+        });
+      } else {
+        messages.push({
+          id: `ppt_s${slideNumber}`,
+          speaker: `Slide ${slideNumber}`,
+          text: slideText,
+          timestamp: '',
+        });
+      }
+    }
+  }
+
+  if (messages.length === 0) {
+    throw new Error('No readable text content found in this PowerPoint presentation.');
+  }
+
+  const speakers = Array.from(new Set(messages.map((m) => m.speaker)));
+  return {
+    sourceName,
+    messages,
+    speakers,
+    skipped: 0,
+    docType: 'powerpoint',
+  };
 }

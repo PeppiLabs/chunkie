@@ -27,7 +27,7 @@ export interface Transcript {
   /** Entries in the file we could not read, reported rather than hidden. */
   skipped: number;
   /** Format of document if known. */
-  docType?: 'chat' | 'pdf' | 'docx' | 'markdown' | 'text' | 'csv' | 'code';
+  docType?: 'chat' | 'pdf' | 'docx' | 'markdown' | 'text' | 'csv' | 'code' | 'excel' | 'powerpoint' | 'email' | 'html';
 }
 
 /** Strategy families grouping related chunking methods. */

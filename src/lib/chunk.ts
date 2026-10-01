@@ -42,7 +42,7 @@ export interface StrategyCatalogItem {
   cuts: string;
   bestFor: string;
   tradeoff: string;
-  recommendedFor?: ('chat' | 'pdf' | 'docx' | 'markdown' | 'csv' | 'text' | 'code')[];
+  recommendedFor?: NonNullable<Transcript['docType']>[];
 }
 
 export const STRATEGY_FAMILIES: { id: ChunkFamily; label: string; description: string }[] = [
@@ -131,7 +131,7 @@ export const STRATEGY_CATALOG: StrategyCatalogItem[] = [
     cuts: 'One chunk per document page (or set number of pages)',
     bestFor: 'PDF documents and slide decks with distinct pages',
     tradeoff: 'Matches physical pages for easy citation, but sentences may cross pages',
-    recommendedFor: ['pdf'],
+    recommendedFor: ['pdf', 'powerpoint'],
   },
   {
     id: 'table-rows',
@@ -140,7 +140,7 @@ export const STRATEGY_CATALOG: StrategyCatalogItem[] = [
     cuts: 'Consecutive rows of tables or CSVs grouped with headers repeated',
     bestFor: 'CSV, TSV, and tabular data extracts',
     tradeoff: 'Each value stays contextualized, but tabular data is dense',
-    recommendedFor: ['csv'],
+    recommendedFor: ['csv', 'excel'],
   },
   {
     id: 'code',
@@ -187,7 +187,7 @@ export const STRATEGY_CATALOG: StrategyCatalogItem[] = [
     cuts: 'One chunk per message or speaker turn',
     bestFor: 'Pinpointing an exact single answer or question',
     tradeoff: 'Very precise, but short replies lose conversational context',
-    recommendedFor: ['chat'],
+    recommendedFor: ['chat', 'email'],
   },
   {
     id: 'per-conversation',
@@ -196,7 +196,7 @@ export const STRATEGY_CATALOG: StrategyCatalogItem[] = [
     cuts: 'A set number of consecutive exchanges kept together',
     bestFor: 'Conversations where question and reply need to stay together',
     tradeoff: 'Maintains dialogue context, but large groups dilute search match',
-    recommendedFor: ['chat'],
+    recommendedFor: ['chat', 'email'],
   },
   {
     id: 'session',
@@ -205,7 +205,7 @@ export const STRATEGY_CATALOG: StrategyCatalogItem[] = [
     cuts: 'Exchanges grouped until a silence gap indicates the person paused',
     bestFor: 'Support logs, messaging history, or intermittent consultation chats',
     tradeoff: 'Groups natural conversation sessions, but session lengths vary',
-    recommendedFor: ['chat'],
+    recommendedFor: ['chat', 'email'],
   },
   {
     id: 'day-wise',
