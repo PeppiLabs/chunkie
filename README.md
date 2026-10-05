@@ -15,6 +15,8 @@ meaning. Every step is visible, nothing is hidden, and no jargon is assumed.
 
 A [Peppi Labs](https://github.com/PeppiLabs) open source project.
 
+<img src="docs/screenshots/search.png" width="900" alt="The Search step. The question 'why does her leg hurt' returns passages about knee and IT band pain, ranked by cosine similarity, next to a 2D map of every chunk with the question marked in orange." />
+
 </div>
 
 ---
@@ -67,6 +69,8 @@ demonstration of what the model is actually doing.
 Clone the repository and run it (see [Running it](#running-it) below). Three transcripts are
 bundled, so there is nothing to find first, and you can drop in your own JSON file at any point.
 
+<img src="docs/screenshots/load.png" width="900" alt="The Load step, offering three bundled chat transcripts to start from, or a JSON file of your own." />
+
 ## How it works
 
 **There is no backend.** The embedding model runs inside your browser tab via
@@ -76,7 +80,7 @@ cosine similarity over an in-memory array.
 That is a deliberate design choice, not a shortcut:
 
 - **Your data never leaves your machine.** Files are read by the browser and stay in the tab.
-- **No account, no database, no server process.** Just a dev server serving static files.
+- **No account, no database, no server process.** It deploys as a plain static site.
 - **No API keys and no paid services.** Nothing to sign up for before it works.
 - **The numbers on screen are real.** They are the model's actual output, not a simulation.
 
@@ -125,11 +129,27 @@ internet connection for that first download only; everything after it is local.
 ### About the cross origin headers
 
 `vite.config.ts` sets `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` for both the
-dev server and the preview server. They make the page cross origin isolated, which is what lets the
-WASM runtime use its faster multi threaded backend.
+dev server and the preview server, matching what `render.yaml` serves in production. They make the
+page cross origin isolated, which is what lets the WASM runtime use its faster multi threaded
+backend.
 
 If you ever serve the built output some other way, without those two headers the model still runs,
 just on a slower single threaded path.
+
+## Deploying
+
+The app is static, so it runs on a free Render static site. `render.yaml` is a
+[Blueprint](https://render.com/docs/blueprint-spec) that configures everything.
+
+1. In the Render dashboard, choose **New** then **Blueprint**.
+2. Connect the GitHub repository. Render reads `render.yaml` and sets up the build, the single page
+   app rewrite, the cross origin headers, and asset caching.
+3. Deploy. Every push to `main` deploys again, and pull requests get preview sites.
+
+There are no environment variables and no secrets to configure.
+
+Any other static host works too. Build with `npm run build` and serve `dist/`, but set the two
+cross origin headers, or the model falls back to the slower single threaded path.
 
 ## Bringing your own transcript
 
@@ -179,6 +199,8 @@ src/
     layout/         Header, footer, step navigation
 public/samples/     The three bundled transcripts
 public/concepts.html  The written guide to every concept
+docs/screenshots/   The images in this readme
+render.yaml         Hosting config for Render
 ```
 
 ## A note on `npm audit`
