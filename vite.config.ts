@@ -9,8 +9,7 @@ import react from '@vitejs/plugin-react';
  * model still runs, just on a slower single threaded path.
  *
  * They are set for both `dev` and `preview` so the app behaves the same
- * whichever one you use, and they must match the ones `render.yaml` serves in
- * production.
+ * whichever one you use.
  */
 const CROSS_ORIGIN_ISOLATION = {
   'Cross-Origin-Opener-Policy': 'same-origin',
