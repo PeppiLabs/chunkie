@@ -103,7 +103,7 @@ Your browser
 
 ## Running it
 
-Requires Node.js 20.19 or newer. Check with `node -v`.
+Requires Node.js 22.12 or newer. Check with `node -v`.
 
 ```bash
 git clone https://github.com/PeppiLabs/chunkie.git
