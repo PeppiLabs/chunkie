@@ -16,7 +16,7 @@ or does it fix something that is wrong?
 
 ## Getting set up
 
-Node.js 20.19 or newer.
+Node.js 22.12 or newer.
 
 ```bash
 npm install
@@ -57,6 +57,16 @@ that was a deliberate call.
 2. Keep the change focused. One idea per pull request.
 3. Say what you changed and why. If it is visual, a screenshot helps.
 4. Confirm `npm run lint` and `npm run build` both pass.
+
+Nobody pushes to `main` directly, maintainers included. Every change reaches it through a pull
+request, and a pull request can only merge once:
+
+- a maintainer listed in [`.github/CODEOWNERS`](.github/CODEOWNERS) has approved it,
+- the lint, test, build, and secret scan checks have passed, and
+- every review conversation is resolved.
+
+If you push new commits after an approval, the approval is dismissed and the change needs another
+look. For a first time contributor, a maintainer also has to approve the checks before they run.
 
 ## Reporting a security issue
 
