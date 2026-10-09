@@ -1,0 +1,15 @@
+# Opens pull requests when a dependency or a pinned action has a newer
+# version, including security fixes. Nothing merges on its own: each one goes
+# through review and CI like any other change.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
