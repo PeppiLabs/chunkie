@@ -149,6 +149,26 @@ describe('createPasswordGate', () => {
     expect(await res.text()).toBe('Unauthorized');
   });
 
+  it('answers /healthz without a password, with "ok" and nothing from the app', async () => {
+    const res = await fetch(`${base}/healthz`);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('ok');
+    expect((await fetch(`${base}/healthz`, { method: 'HEAD' })).status).toBe(200);
+  });
+
+  it.each(['/healthz/', '/healthz/x', '/healthz/../src/main.tsx', '/HEALTHZ', '/healthzz', '/%68ealthz'])(
+    'keeps %s behind the password',
+    async (path) => {
+      expect((await fetch(base + path)).status).toBe(401);
+    },
+  );
+
+  it('treats a POST to /healthz as a login attempt, not a health check', async () => {
+    const res = await login('test-pass-13x', '/healthz');
+    expect(res.status).toBe(401);
+    expect(await res.text()).not.toBe('ok');
+  });
+
   it('rejects a wrong password', async () => {
     const res = await login('test-pass-13x');
     expect(res.status).toBe(401);
