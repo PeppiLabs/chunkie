@@ -27,6 +27,12 @@ export default defineConfig(({ mode, command }) => {
   // not serve anything over HTTP, so they run without needing the password.
   const serving = command === 'serve' && mode !== 'test' && !process.env.VITEST;
 
+  // Render sets RENDER=true, PORT, and the service's onrender.com hostname.
+  // There `npm start` (vite preview) must listen on every interface, on the
+  // port Render gives it, and accept requests addressed to that hostname.
+  // Locally none of these are set, so preview stays on localhost.
+  const onRender = env.RENDER === 'true';
+
   return {
   plugins: [...(serving ? [passwordGate(env)] : []), react()],
   server: {
@@ -34,6 +40,12 @@ export default defineConfig(({ mode, command }) => {
   },
   preview: {
     headers: CROSS_ORIGIN_ISOLATION,
+    ...(onRender && {
+      host: true,
+      port: Number(env.PORT) || 10000,
+      strictPort: true,
+      allowedHosts: env.RENDER_EXTERNAL_HOSTNAME ? [env.RENDER_EXTERNAL_HOSTNAME] : [],
+    }),
   },
   build: {
     // The embedding runtime is large and loads in a worker, so the warning

@@ -141,7 +141,24 @@ function escapeHtml(value: string): string {
   );
 }
 
-function clientKey(req: IncomingMessage): string {
+export type GateOptions = {
+  /**
+   * Set when running on Render. Every request there arrives through Cloudflare
+   * and Render's proxy, so the socket address is the proxy's, the same for all
+   * visitors, and HTTPS has already been handled in front of the app.
+   */
+  behindRenderProxy?: boolean;
+};
+
+function clientKey(req: IncomingMessage, options: GateOptions): string {
+  if (options.behindRenderProxy) {
+    // Cloudflare writes CF-Connecting-IP on every request to a Render web
+    // service and overwrites any value the caller sent, so it cannot be faked.
+    // X-Forwarded-For can: the proxy appends to it, so its first entry is
+    // whatever the caller chose.
+    const ip = req.headers['cf-connecting-ip'];
+    if (typeof ip === 'string' && ip) return ip;
+  }
   return req.socket.remoteAddress ?? 'unknown';
 }
 
@@ -261,7 +278,10 @@ function redirect(res: ServerResponse, location: string, cookie?: string): void 
   res.end();
 }
 
-export function createPasswordGate(passwordHash: string): Connect.NextHandleFunction {
+export function createPasswordGate(
+  passwordHash: string,
+  options: GateOptions = {},
+): Connect.NextHandleFunction {
   const stored = parseHash(passwordHash);
   const token = sessionToken(passwordHash);
   const failures = new Map<string, FailureRecord>();
@@ -304,7 +324,7 @@ export function createPasswordGate(passwordHash: string): Connect.NextHandleFunc
     // Not signed in. A form POST to any URL is a login attempt for that page.
     const contentType = req.headers['content-type'] ?? '';
     if (req.method === 'POST' && contentType.startsWith('application/x-www-form-urlencoded')) {
-      const key = clientKey(req);
+      const key = clientKey(req, options);
       readBody(req)
         .then(async (body) => {
           const form = new URLSearchParams(body);
@@ -324,7 +344,10 @@ export function createPasswordGate(passwordHash: string): Connect.NextHandleFunc
           }
 
           failures.delete(key);
-          const secure = (req.socket as { encrypted?: boolean }).encrypted ? '; Secure' : '';
+          // Render only serves HTTPS, but hands requests on as plain HTTP.
+          const https =
+            options.behindRenderProxy || (req.socket as { encrypted?: boolean }).encrypted;
+          const secure = https ? '; Secure' : '';
           // 303 turns the POST into a GET of the same page, now with the cookie.
           redirect(
             res,
@@ -375,7 +398,8 @@ export function createUpgradeGuard(passwordHash: string): UpgradeGuard {
 
 /**
  * Vite plugin that installs the gate on both `vite` (dev) and `vite preview`.
- * Takes the server side env from loadEnv and reads SITE_PASSWORD_HASH from it.
+ * Takes the server side env from loadEnv and reads SITE_PASSWORD_HASH from it,
+ * plus RENDER, which Render sets to "true" on every service it runs.
  */
 export function passwordGate(env: Record<string, string | undefined>): Plugin {
   // A plain text password on disk is exactly what the hash is there to avoid,
@@ -387,7 +411,7 @@ export function passwordGate(env: Record<string, string | undefined>): Plugin {
     );
   }
   const passwordHash = env.SITE_PASSWORD_HASH ?? '';
-  const gate = createPasswordGate(passwordHash);
+  const gate = createPasswordGate(passwordHash, { behindRenderProxy: env.RENDER === 'true' });
   const guardUpgrade = createUpgradeGuard(passwordHash);
 
   return {
