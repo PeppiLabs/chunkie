@@ -1,5 +1,6 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import { passwordGate } from './server/passwordGate';
 
 /**
  * Headers that make the page cross origin isolated.
@@ -17,8 +18,17 @@ const CROSS_ORIGIN_ISOLATION = {
 };
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(({ mode, command }) => {
+  // Empty prefix loads every variable, but only here on the server. Nothing
+  // without the VITE_ prefix ever reaches client code.
+  const env = loadEnv(mode, process.cwd(), '');
+
+  // The gate guards `vite` and `vite preview`. Builds and the test runner do
+  // not serve anything over HTTP, so they run without needing the password.
+  const serving = command === 'serve' && mode !== 'test' && !process.env.VITEST;
+
+  return {
+  plugins: [...(serving ? [passwordGate(env)] : []), react()],
   server: {
     headers: CROSS_ORIGIN_ISOLATION,
   },
@@ -38,4 +48,5 @@ export default defineConfig({
     // Pre-bundling the runtime here breaks its wasm resolution in dev.
     exclude: ['@huggingface/transformers'],
   },
+  };
 });

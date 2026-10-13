@@ -109,10 +109,13 @@ Requires Node.js 22.12 or newer. Check with `node -v`.
 git clone https://github.com/PeppiLabs/chunkie.git
 cd chunkie
 npm install
+npm run password -- --write
 npm run dev
 ```
 
-Then open the URL the terminal prints, usually <http://localhost:5173>.
+The `password` step prints a new site password once. Keep it, because the dev server asks for it
+before it shows anything (see [The site password](#the-site-password) below). Then open the URL the
+terminal prints, usually <http://localhost:5173>, and enter the password.
 
 The first time you reach the Embed step, the browser downloads the embedding model, roughly 23 MB.
 That happens once and your browser caches it, so every later run starts immediately. It needs an
@@ -125,6 +128,25 @@ internet connection for that first download only; everything after it is local.
 | `npm run preview` | Serve the built site locally |
 | `npm run lint` | Run ESLint |
 | `npm run typecheck` | Type check without emitting |
+| `npm run password -- --write` | Set a new site password |
+
+### The site password
+
+The dev server and the preview server both ask for a password before they serve anything: no page,
+script, or hot reload connection gets through without it.
+
+`npm run password -- --write` makes a new random 13 character password, prints it once, and saves
+only a hash of it to `.env.local`. A hash is a one way fingerprint: the server can check a typed
+password against it, but the password cannot be worked back out of it. The password itself is
+never written to disk, and `.env.local` is git ignored, so neither ends up in the repository. Copy
+the password when it is printed, because there is no way to show it again.
+
+- **To change the password,** run the command again. Everyone who was signed in is signed out.
+- **To sign out,** visit `/logout`.
+- **Tests and `npm run build` need no password,** since neither of them serves anything.
+
+The password protects the dev and preview servers only. If you ever serve the built output some
+other way, it is not protected, so use whatever access control that host provides.
 
 ### About the cross origin headers
 
@@ -184,6 +206,8 @@ src/
 public/samples/     The three bundled transcripts
 public/concepts.html  The written guide to every concept
 docs/screenshots/   The images in this readme
+server/passwordGate.ts         The password check in front of the dev and preview servers
+scripts/generate-password.mjs  Makes a new site password and saves only its hash
 ```
 
 ## A note on `npm audit`
