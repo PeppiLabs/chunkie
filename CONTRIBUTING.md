@@ -16,12 +16,18 @@ or does it fix something that is wrong?
 
 ## Getting set up
 
-Node.js 20.19 or newer.
+Node.js 22.12 or newer.
 
 ```bash
 npm install
+npm run password -- --write   # prints a password once, keep it to sign in
 npm run dev
 ```
+
+The dev server asks for that password before it shows anything. Only a hash of it is saved, in
+`.env.local`, which is git ignored. Never commit a password, a hash, or that file: anything pushed
+to a public repository stays public even after it is deleted. The
+[readme](README.md#the-site-password) explains the rest.
 
 Before opening a pull request:
 
@@ -57,6 +63,16 @@ that was a deliberate call.
 2. Keep the change focused. One idea per pull request.
 3. Say what you changed and why. If it is visual, a screenshot helps.
 4. Confirm `npm run lint` and `npm run build` both pass.
+
+Nobody pushes to `main` directly, maintainers included. Every change reaches it through a pull
+request, and a pull request can only merge once:
+
+- a maintainer listed in [`.github/CODEOWNERS`](.github/CODEOWNERS) has approved it,
+- the lint, test, build, and secret scan checks have passed, and
+- every review conversation is resolved.
+
+If you push new commits after an approval, the approval is dismissed and the change needs another
+look. For a first time contributor, a maintainer also has to approve the checks before they run.
 
 ## Reporting a security issue
 
