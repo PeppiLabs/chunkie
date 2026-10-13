@@ -1,11 +1,11 @@
 import { execFileSync } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
+import { createHmac, randomBytes } from 'node:crypto';
 import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createServer, request, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createPasswordGate,
   createUpgradeGuard,
@@ -182,6 +182,7 @@ describe('createPasswordGate', () => {
 
     const cookie = res.headers.get('set-cookie') ?? '';
     expect(cookie).toContain('HttpOnly');
+    expect(cookie).toContain('Max-Age=10800');
     // Plain HTTP locally, so the cookie must not demand HTTPS.
     expect(cookie).not.toContain('Secure');
     // The cookie carries neither the password nor the stored hash.
@@ -210,6 +211,68 @@ describe('createPasswordGate', () => {
     );
     expect(results.filter((status) => status === 401)).toHaveLength(5);
     expect(results.filter((status) => status === 429)).toHaveLength(15);
+  });
+});
+
+describe('session lifetime', () => {
+  const start = new Date('2026-10-13T12:00:00Z').getTime();
+  const HOURS = 60 * 60 * 1000;
+  let site: Awaited<ReturnType<typeof serveGate>>;
+
+  beforeEach(async () => {
+    // Only the clock is faked, so the real server and fetch keep working.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(start);
+    site = await serveGate(HASH);
+  });
+
+  afterEach(async () => {
+    await site.stop();
+    vi.useRealTimers();
+  });
+
+  const signIn = async () =>
+    ((await postPassword(site.base, PASSWORD)).headers.get('set-cookie') ?? '').split(';')[0];
+  const open = async (cookie: string) =>
+    (await fetch(site.base, { headers: { Cookie: cookie, Accept: 'text/html' } })).status;
+
+  it('still lets you in just before three hours', async () => {
+    const cookie = await signIn();
+    vi.setSystemTime(start + 3 * HOURS - 1000);
+    expect(await open(cookie)).toBe(200);
+  });
+
+  it('is refused by the server at three hours, even if the browser kept it', async () => {
+    const cookie = await signIn();
+    vi.setSystemTime(start + 3 * HOURS);
+    expect(await open(cookie)).toBe(401);
+  });
+
+  it('cannot be stretched by editing the sign-in time in the cookie', async () => {
+    const cookie = await signIn();
+    vi.setSystemTime(start + 4 * HOURS);
+    const [name, value] = cookie.split('=');
+    const mac = value.split('.')[1];
+    expect(await open(`${name}=${Math.floor(Date.now() / 1000)}.${mac}`)).toBe(401);
+  });
+
+  it('no longer accepts the old never-expiring cookie', async () => {
+    const old = createHmac('sha256', HASH).update('chunkie-gate-session-v2').digest('hex');
+    expect(await open(`chunkie_gate=${old}`)).toBe(401);
+  });
+
+  it('closes the WebSocket at the same moment as the pages', async () => {
+    const cookie = await signIn();
+    const guard = createUpgradeGuard(HASH);
+    const closedAt = (when: number) => {
+      vi.setSystemTime(when);
+      let closed = false;
+      const socket = { writable: false, destroy: () => (closed = true) };
+      guard({ headers: { cookie } } as never, socket as never);
+      return closed;
+    };
+    expect(closedAt(start + 3 * HOURS - 1000)).toBe(false);
+    expect(closedAt(start + 3 * HOURS)).toBe(true);
   });
 });
 
