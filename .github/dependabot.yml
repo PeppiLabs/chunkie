@@ -8,6 +8,12 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # typescript-eslint only supports TypeScript below 6.1, so a newer
+      # TypeScript breaks the install before lint even runs. Remove this once
+      # typescript-eslint's peer range covers the newer version.
+      - dependency-name: typescript
+        versions: [">=6.1.0"]
 
   - package-ecosystem: github-actions
     directory: /

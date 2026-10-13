@@ -114,6 +114,10 @@ export function useRagPipeline() {
    */
   useEffect(() => {
     generationRef.current += 1;
+    // Keyed on `chunks` on purpose: however the chunking changes, now or after
+    // a later edit, the stale vectors go with it. Resetting from each setter
+    // instead would save one render but lose that guarantee.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEmbedded(null);
     setProjection(null);
     setHits(null);
