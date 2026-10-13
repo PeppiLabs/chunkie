@@ -9,6 +9,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   createPasswordGate,
   createUpgradeGuard,
+  type GateOptions,
   hashPassword,
   PASSWORD_LENGTH,
   passwordGate,
@@ -22,8 +23,8 @@ beforeAll(async () => {
 });
 
 /** Starts a server running the gate and returns its base URL and a stop function. */
-async function serveGate(passwordHash: string) {
-  const gate = createPasswordGate(passwordHash);
+async function serveGate(passwordHash: string, options?: GateOptions) {
+  const gate = createPasswordGate(passwordHash, options);
   const server = createServer((req, res) => gate(req, res, () => res.end('the real page')));
   await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
   return {
@@ -32,10 +33,15 @@ async function serveGate(passwordHash: string) {
   };
 }
 
-function postPassword(base: string, password: string, path = '/') {
+function postPassword(
+  base: string,
+  password: string,
+  path = '/',
+  headers: Record<string, string> = {},
+) {
   return fetch(base + path, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', ...headers },
     body: new URLSearchParams({ password }).toString(),
     redirect: 'manual',
   });
@@ -156,6 +162,8 @@ describe('createPasswordGate', () => {
 
     const cookie = res.headers.get('set-cookie') ?? '';
     expect(cookie).toContain('HttpOnly');
+    // Plain HTTP locally, so the cookie must not demand HTTPS.
+    expect(cookie).not.toContain('Secure');
     // The cookie carries neither the password nor the stored hash.
     expect(cookie).not.toContain(encodeURIComponent(PASSWORD));
     expect(cookie).not.toContain(HASH.split(':')[2]);
@@ -182,6 +190,41 @@ describe('createPasswordGate', () => {
     );
     expect(results.filter((status) => status === 401)).toHaveLength(5);
     expect(results.filter((status) => status === 429)).toHaveLength(15);
+  });
+});
+
+describe('createPasswordGate behind Render', () => {
+  let site: Awaited<ReturnType<typeof serveGate>>;
+
+  beforeEach(async () => {
+    site = await serveGate(HASH, { behindRenderProxy: true });
+  });
+
+  afterEach(async () => {
+    await site.stop();
+  });
+
+  const loginFrom = (ip: string, password: string, headers: Record<string, string> = {}) =>
+    postPassword(site.base, password, '/', { 'CF-Connecting-IP': ip, ...headers });
+
+  it('marks the cookie Secure, since Render only serves HTTPS', async () => {
+    const res = await loginFrom('203.0.113.7', PASSWORD);
+    expect(res.status).toBe(303);
+    expect(res.headers.get('set-cookie')).toContain('Secure');
+  });
+
+  it('locks out one visitor without locking out everyone behind the proxy', async () => {
+    for (let i = 0; i < 5; i++) await loginFrom('203.0.113.7', 'test-pass-13x');
+    expect((await loginFrom('203.0.113.7', PASSWORD)).status).toBe(429);
+    expect((await loginFrom('198.51.100.4', PASSWORD)).status).toBe(303);
+  });
+
+  it('ignores a faked X-Forwarded-For when counting attempts', async () => {
+    for (let i = 0; i < 5; i++) {
+      await loginFrom('203.0.113.7', 'test-pass-13x', { 'X-Forwarded-For': `10.0.0.${i}` });
+    }
+    const res = await loginFrom('203.0.113.7', PASSWORD, { 'X-Forwarded-For': '10.0.0.99' });
+    expect(res.status).toBe(429);
   });
 });
 
