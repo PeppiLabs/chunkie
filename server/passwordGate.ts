@@ -17,8 +17,10 @@ import type { Connect, Plugin } from 'vite';
  * a salted scrypt hash of it (see .env.example), so reading that file does not
  * reveal the password. `npm run password -- --write` makes a new 13 character
  * password, prints it once, and saves only the hash. A correct password sets
- * an HttpOnly cookie holding an HMAC keyed by that hash, which says nothing
- * about the password either. A new password therefore signs everyone out.
+ * an HttpOnly cookie holding the sign-in time and an HMAC of it keyed by that
+ * hash, which says nothing about the password either. The server refuses the
+ * cookie three hours after sign-in, even a copy of it, and a new password
+ * signs everyone out at once.
  *
  * None of this has a VITE_ prefix, so none of it is exposed to client code.
  */
@@ -69,8 +71,16 @@ async function passwordMatches(attempt: string, stored: StoredHash): Promise<boo
   if (attempt.length !== PASSWORD_LENGTH) return false;
   return timingSafeEqual(await deriveKey(attempt, stored.salt), stored.key);
 }
+
 const COOKIE_NAME = 'chunkie_gate';
-const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // one week
+/**
+ * How long a sign-in lasts. The browser drops the cookie at this point, and
+ * the server checks the sign-in time inside it too, so a cookie copied out of
+ * a browser stops working at the same moment.
+ */
+const SESSION_SECONDS = 60 * 60 * 3; // three hours
+/** Tolerates the server clock being nudged back a little after a sign-in. */
+const CLOCK_SKEW_SECONDS = 60;
 /**
  * There is no separate login URL. The form posts back to whatever page the
  * visitor asked for, so the address bar always shows the real page.
@@ -91,8 +101,20 @@ const MAX_BODY_BYTES = 4 * 1024;
 
 type FailureRecord = { count: number; firstAt: number };
 
-function sessionToken(passwordHash: string): string {
-  return createHmac('sha256', passwordHash).update('chunkie-gate-session-v2').digest('hex');
+/**
+ * A session cookie is `<sign-in time in unix seconds>.<HMAC of that time>`,
+ * keyed by the password hash. Changing the time breaks the HMAC, and a new
+ * password changes the key.
+ */
+function signSession(passwordHash: string, issuedAt: number): string {
+  const mac = createHmac('sha256', passwordHash)
+    .update(`chunkie-gate-session-v3:${issuedAt}`)
+    .digest('hex');
+  return `${issuedAt}.${mac}`;
+}
+
+function nowSeconds(): number {
+  return Math.floor(Date.now() / 1000);
 }
 
 function safeEqual(a: string, b: string): boolean {
@@ -112,9 +134,15 @@ function readCookie(req: IncomingMessage, name: string): string | undefined {
   return undefined;
 }
 
-function hasSession(req: IncomingMessage, token: string): boolean {
+function hasSession(req: IncomingMessage, passwordHash: string): boolean {
   const cookie = readCookie(req, COOKIE_NAME);
-  return cookie !== undefined && safeEqual(cookie, token);
+  const match = cookie === undefined ? null : /^(\d{1,12})\.[0-9a-f]{64}$/.exec(cookie);
+  if (!cookie || !match) return false;
+
+  const issuedAt = Number(match[1]);
+  const age = nowSeconds() - issuedAt;
+  if (age < -CLOCK_SKEW_SECONDS || age >= SESSION_SECONDS) return false;
+  return safeEqual(cookie, signSession(passwordHash, issuedAt));
 }
 
 function readBody(req: IncomingMessage): Promise<string> {
@@ -291,7 +319,6 @@ export function createPasswordGate(
   options: GateOptions = {},
 ): Connect.NextHandleFunction {
   const stored = parseHash(passwordHash);
-  const token = sessionToken(passwordHash);
   const failures = new Map<string, FailureRecord>();
 
   const isLocked = (key: string): boolean => {
@@ -333,7 +360,7 @@ export function createPasswordGate(
       return;
     }
 
-    if (hasSession(req, token)) {
+    if (hasSession(req, passwordHash)) {
       next();
       return;
     }
@@ -369,7 +396,8 @@ export function createPasswordGate(
           redirect(
             res,
             target,
-            `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${COOKIE_MAX_AGE_SECONDS}${secure}`,
+            `${COOKIE_NAME}=${signSession(passwordHash, nowSeconds())}; Path=/; HttpOnly; ` +
+              `SameSite=Strict; Max-Age=${SESSION_SECONDS}${secure}`,
           );
         })
         .catch(() => sendHtml(res, 400, loginPage('Invalid request.')));
@@ -403,9 +431,8 @@ export type UpgradeGuard = (req: IncomingMessage, socket: Duplex) => void;
  * so hot reload keeps working for them.
  */
 export function createUpgradeGuard(passwordHash: string): UpgradeGuard {
-  const token = sessionToken(passwordHash);
   return (req, socket) => {
-    if (hasSession(req, token)) return;
+    if (hasSession(req, passwordHash)) return;
     if (socket.writable) {
       socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
     }

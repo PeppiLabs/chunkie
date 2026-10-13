@@ -143,6 +143,8 @@ the password when it is printed, because there is no way to show it again.
 
 - **To change the password,** run the command again. Everyone who was signed in is signed out.
 - **To sign out,** visit `/logout`.
+- **A sign-in lasts 3 hours,** then the password is asked for again. The server checks the time
+  itself, so a copy of the sign-in cookie stops working at the same moment.
 - **Tests and `npm run build` need no password,** since neither of them serves anything.
 - **`/healthz` is the one open address.** It answers "ok" and nothing else, so an uptime ping or a
   health check gets a success rather than the login page's 401. It shows nothing of the app.
