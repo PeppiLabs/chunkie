@@ -1,0 +1,8 @@
+# Every pull request into main needs an approving review from one of the people
+# below. The ruleset on main enforces this, so a change cannot merge without it.
+#
+# An owner only counts once they have write access to this repository. To hand
+# this to a team instead, replace the names with the team, e.g.
+# @PeppiLabs/maintainers, and give that team write access.
+
+* @RushikeshPeppi @hemang2873

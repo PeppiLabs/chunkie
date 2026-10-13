@@ -122,44 +122,35 @@ describe('fixed-window chunking', () => {
 
   it('stays linear as the transcript grows', () => {
     // This runs synchronously inside a useMemo on every slider tick, so a
-    // quadratic scan froze the tab on a large file. Doubling the input must
-    // not do much worse than double the work.
-    const build = (n: number) =>
-      transcriptOf(
-        Array.from({ length: n }, (_, i) => `Message ${i} with a reasonable amount of text in it.`),
-      );
-
+    // quadratic scan froze the tab on a large file.
+    //
+    // An earlier version compared the time for a small and a large input. The
+    // small run took about a millisecond, so dividing by it magnified any
+    // hiccup on a shared CI machine into a failure. One large input against a
+    // fixed budget avoids that: noise can only slow a run down, and the gap is
+    // wide. On a laptop the linear pass takes about 60 ms, and under 700 ms
+    // with every core busy. A quadratic scan takes about 17 seconds.
+    const transcript = transcriptOf(
+      Array.from({ length: 50_000 }, (_, i) => `Message ${i} with a reasonable amount of text in it.`),
+    );
     const options: ChunkOptions = {
       ...DEFAULT_CHUNK_OPTIONS,
       strategy: 'fixed-window',
       size: 100,
       overlap: 40,
     };
+    const budgetMs = 3000;
 
-    // Wall clock on a shared machine is noisy, so take the best of several
-    // runs rather than a single sample. The best run is the one least
-    // disturbed by whatever else the machine was doing.
-    const best = (transcript: ReturnType<typeof transcriptOf>) => {
-      let fastest = Infinity;
-      for (let run = 0; run < 5; run++) {
-        const start = performance.now();
-        chunkTranscript(transcript, options);
-        fastest = Math.min(fastest, performance.now() - start);
-      }
-      return fastest;
-    };
+    // A few tries, so one badly timed pause on a busy machine is not a failure.
+    let fastest = Infinity;
+    for (let run = 0; run < 3 && fastest >= budgetMs; run++) {
+      const start = performance.now();
+      chunkTranscript(transcript, options);
+      fastest = Math.min(fastest, performance.now() - start);
+    }
 
-    const small = build(2000);
-    const large = build(8000);
-
-    best(small);
-    best(large);
-
-    const ratio = best(large) / Math.max(best(small), 0.2);
-    // Four times the input. Linear would be about 4, quadratic about 16.
-    // Ten leaves room for noise while still failing on a quadratic scan.
-    expect(ratio).toBeLessThan(10);
-  });
+    expect(fastest).toBeLessThan(budgetMs);
+  }, 60_000);
 
   it('never reports more overlap than the chunk has text', () => {
     for (const size of [100, 250, 600, 1200]) {
