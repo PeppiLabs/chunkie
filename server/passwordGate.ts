@@ -10,7 +10,8 @@ import type { Connect, Plugin } from 'vite';
  * page, script, stylesheet or worker is served until the visitor has entered
  * the site password. WebSocket upgrades, such as the dev server's hot reload
  * socket, never pass through middleware, so they are checked separately before
- * Vite sees them.
+ * Vite sees them. The one exception is /healthz, which answers "ok" and nothing
+ * else, so an uptime ping or a health check has a page that is not an error.
  *
  * The password itself is never stored. SITE_PASSWORD_HASH in .env.local holds
  * a salted scrypt hash of it (see .env.example), so reading that file does not
@@ -75,6 +76,13 @@ const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // one week
  * visitor asked for, so the address bar always shows the real page.
  */
 const LOGOUT_PATH = '/logout';
+/**
+ * Answers "ok" without a password. A free Render service sleeps after 15
+ * minutes with no traffic, and a ping that keeps it awake needs a 2xx answer:
+ * ping services count the login page's 401 as a failure and may stop pinging.
+ * It is answered here, never passed on to Vite, so nothing of the app leaks.
+ */
+const HEALTH_PATH = '/healthz';
 
 /** Failed attempts allowed per client inside the window before it is locked. */
 const MAX_FAILURES = 5;
@@ -311,6 +319,15 @@ export function createPasswordGate(
 
     const target = safeNext(url.pathname + url.search);
 
+    if (url.pathname === HEALTH_PATH && (req.method === 'GET' || req.method === 'HEAD')) {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+      res.end('ok');
+      return;
+    }
+
     if (url.pathname === LOGOUT_PATH) {
       redirect(res, '/', `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0`);
       return;
@@ -421,11 +438,13 @@ export function passwordGate(env: Record<string, string | undefined>): Plugin {
     configureServer(server) {
       // A separate hot reload port or server would get its own listener that
       // the guard below never sees, so refuse to start rather than leave it open.
-      const { hmr, port } = server.config.server;
-      if (typeof hmr === 'object' && (hmr.server || (hmr.port && hmr.port !== port))) {
+      // Vite resolves the older server.hmr.port and server.hmr.server into
+      // server.ws, so checking server.ws covers both spellings.
+      const { ws, port } = server.config.server;
+      if (typeof ws === 'object' && (ws.server || (ws.port && ws.port !== port))) {
         throw new Error(
-          'The password gate cannot guard a separate HMR server. ' +
-            'Remove server.hmr.port and server.hmr.server.',
+          'The password gate cannot guard a separate hot reload server. Remove ' +
+            'server.ws.port and server.ws.server (or server.hmr.port and server.hmr.server).',
         );
       }
       server.middlewares.use(gate);
