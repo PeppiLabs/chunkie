@@ -428,9 +428,9 @@ describe('passwordGate on the preview server', () => {
   });
 
   /** Runs the plugin's preview hook against a stand-in server and serves the gate it installs. */
-  async function startPreview() {
+  async function startPreview(extraEnv: Record<string, string> = {}) {
     let installed: Connect.NextHandleFunction | undefined;
-    const plugin = passwordGate({ SITE_PASSWORD_HASH: HASH });
+    const plugin = passwordGate({ SITE_PASSWORD_HASH: HASH, ...extraEnv });
     const hook = plugin.configurePreviewServer as unknown as (server: unknown) => void;
     hook({
       config: { root, build: { outDir: 'dist' } },
@@ -445,7 +445,7 @@ describe('passwordGate on the preview server', () => {
   it('serves the landing page of the build without a password, and nothing else', async () => {
     mkdirSync(join(root, 'dist', '.vite'), { recursive: true });
     writeFileSync(join(root, 'dist', '.vite', 'manifest.json'), JSON.stringify(BUILD_MANIFEST));
-    const base = await startPreview();
+    const base = await startPreview({ SITE_PUBLIC_LANDING: 'true' });
 
     for (const path of LANDING_BUILD_PATHS) {
       expect((await fetch(base + path)).status, path).toBe(200);
@@ -457,10 +457,76 @@ describe('passwordGate on the preview server', () => {
 
   it('keeps everything behind the password when the build has no manifest', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const base = await startPreview();
+    const base = await startPreview({ SITE_PUBLIC_LANDING: 'true' });
     expect((await fetch(`${base}/`)).status).toBe(401);
     expect(warn).toHaveBeenCalledOnce();
     warn.mockRestore();
+  });
+
+  it('keeps the landing page behind the password unless SITE_PUBLIC_LANDING is true', async () => {
+    mkdirSync(join(root, 'dist', '.vite'), { recursive: true });
+    writeFileSync(join(root, 'dist', '.vite', 'manifest.json'), JSON.stringify(BUILD_MANIFEST));
+    const base = await startPreview();
+
+    for (const path of LANDING_BUILD_PATHS) {
+      expect((await fetch(base + path)).status, path).toBe(401);
+    }
+    // The health check stays open, so Render can still see the service is up.
+    expect((await fetch(`${base}/healthz`)).status).toBe(200);
+  });
+
+  it.each(['false', 'TRUE', 'True', '1', 'yes', ' true', 'true '])(
+    'treats SITE_PUBLIC_LANDING=%j as not public',
+    async (value) => {
+      mkdirSync(join(root, 'dist', '.vite'), { recursive: true });
+      writeFileSync(join(root, 'dist', '.vite', 'manifest.json'), JSON.stringify(BUILD_MANIFEST));
+      const base = await startPreview({ SITE_PUBLIC_LANDING: value });
+      expect((await fetch(`${base}/`)).status).toBe(401);
+    },
+  );
+});
+
+describe('passwordGate on the dev server', () => {
+  let root: string;
+  let site: Awaited<ReturnType<typeof serveHandler>> | undefined;
+
+  beforeEach(() => {
+    root = mkdtempSync(join(tmpdir(), 'chunkie-dev-'));
+    mkdirSync(join(root, 'src'), { recursive: true });
+    writeFileSync(join(root, 'src', 'landing.tsx'), 'export {};');
+  });
+
+  afterEach(async () => {
+    await site?.stop();
+    site = undefined;
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  /** Runs the plugin's dev hook against a stand-in server and serves the gate it installs. */
+  async function startDev(extraEnv: Record<string, string> = {}) {
+    let installed: Connect.NextHandleFunction | undefined;
+    const plugin = passwordGate({ SITE_PASSWORD_HASH: HASH, ...extraEnv });
+    const hook = plugin.configureServer as unknown as (server: unknown) => void;
+    hook({
+      config: { root, server: {} },
+      middlewares: { use: (handler: Connect.NextHandleFunction) => (installed = handler) },
+      httpServer: null,
+    });
+    if (!installed) throw new Error('The plugin did not install the gate.');
+    site = await serveHandler(installed);
+    return site.base;
+  }
+
+  it('keeps the landing page behind the password by default', async () => {
+    const base = await startDev();
+    expect((await fetch(`${base}/`)).status).toBe(401);
+    expect((await fetch(`${base}/src/landing.tsx`)).status).toBe(401);
+  });
+
+  it('serves the landing page without a password when SITE_PUBLIC_LANDING is true', async () => {
+    const base = await startDev({ SITE_PUBLIC_LANDING: 'true' });
+    expect((await fetch(`${base}/`)).status).toBe(200);
+    expect((await fetch(`${base}/src/landing.tsx`)).status).toBe(200);
   });
 });
 

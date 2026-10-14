@@ -14,8 +14,9 @@ import { devPublicCheck, type IsPublic, NOTHING_PUBLIC, previewPublicCheck } fro
  * server's hot reload socket, never pass through middleware, so they are
  * checked separately before Vite sees them. Two things get through without
  * the password: /healthz, which answers "ok" and nothing else, so an uptime
- * ping or a health check has a page that is not an error, and the landing
- * page with exactly the files it needs (see publicPaths.ts).
+ * ping or a health check has a page that is not an error, and, only when
+ * SITE_PUBLIC_LANDING is "true", the landing page with exactly the files it
+ * needs (see publicPaths.ts). Without it, every other page needs the password.
  *
  * The password itself is never stored. SITE_PASSWORD_HASH in .env.local holds
  * a salted scrypt hash of it (see .env.example), so reading that file does not
@@ -509,6 +510,11 @@ export function passwordGate(env: Record<string, string | undefined>): Plugin {
     );
   }
   const passwordHash = env.SITE_PASSWORD_HASH ?? '';
+  // The landing page is public only when asked for in exactly these words.
+  // Anything else, a typo included, keeps every page behind the password, so a
+  // missing or mistyped setting can only make a site more private. Staging
+  // leaves it unset. The live site is plain files and runs no gate at all.
+  const publicLanding = env.SITE_PUBLIC_LANDING === 'true';
   // Set once a server starts, when the plugin knows whether it is the dev
   // server or the preview of a build. Until then nothing is public.
   let isPublic: IsPublic = NOTHING_PUBLIC;
@@ -534,13 +540,15 @@ export function passwordGate(env: Record<string, string | undefined>): Plugin {
             'server.ws.port and server.ws.server (or server.hmr.port and server.hmr.server).',
         );
       }
-      isPublic = devPublicCheck(server.config.root);
+      if (publicLanding) isPublic = devPublicCheck(server.config.root);
       server.middlewares.use(gate);
       // Prepended so it runs before Vite's own upgrade listener.
       server.httpServer?.prependListener('upgrade', guardUpgrade);
     },
     configurePreviewServer(server) {
-      isPublic = previewPublicCheck(resolve(server.config.root, server.config.build.outDir));
+      if (publicLanding) {
+        isPublic = previewPublicCheck(resolve(server.config.root, server.config.build.outDir));
+      }
       server.middlewares.use(gate);
       server.httpServer.prependListener('upgrade', guardUpgrade);
     },

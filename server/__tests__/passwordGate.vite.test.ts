@@ -68,7 +68,12 @@ describe('passwordGate on a real Vite dev server', () => {
       appType: 'mpa',
       server: { middlewareMode: true, hmr: false },
       optimizeDeps: { noDiscovery: true, include: [] },
-      plugins: [passwordGate({ SITE_PASSWORD_HASH: await hashPassword('test-pass-13v') })],
+      plugins: [
+        passwordGate({
+          SITE_PASSWORD_HASH: await hashPassword('test-pass-13v'),
+          SITE_PUBLIC_LANDING: 'true',
+        }),
+      ],
     });
     http = createHttpServer(vite.middlewares);
     await new Promise<void>((done) => http.listen(0, '127.0.0.1', done));
