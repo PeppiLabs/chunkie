@@ -133,16 +133,19 @@ internet connection for that first download only; everything after it is local.
 
 ### The site password
 
-The dev server and the preview server both ask for a password before they serve the visualizer at
-`/app/`. The landing page at `/` is public, along with exactly the scripts, styles and fonts it
-needs. Everything else (the visualizer, its workers, the samples, the concepts guide, and the hot
-reload connection) needs the password. Whatever the landing page imports becomes public, so keep
-visualizer code out of `src/landing.tsx` and the components it uses.
+The dev server and the preview server both ask for a password before they serve anything, apart
+from `/healthz`. That is how staging runs. To show the landing page at `/` without the password,
+set `SITE_PUBLIC_LANDING=true` in `.env.local`. Then the landing page and exactly the scripts,
+styles and fonts it needs are public, and everything else (the visualizer, its workers, the
+samples, the concepts guide, and the hot reload connection) still needs the password. Any value
+other than exactly `true` keeps the landing page private. Whatever the landing page imports
+becomes public when it is on, so keep visualizer code out of `src/landing.tsx` and the
+components it uses.
 
-For the built site, the list of public files comes from the manifest that `npm run build` writes.
-If that manifest is missing, for example when `dist/` predates this layout, nothing is public, and
-the preview server says so in the terminal. Run `npm run build` again. The preview server reads the
-manifest when it starts, so restart it after every `npm run build`.
+With `SITE_PUBLIC_LANDING=true`, the built site's list of public files comes from the manifest that
+`npm run build` writes. If that manifest is missing, for example when `dist/` predates this layout,
+nothing is public, and the preview server says so in the terminal. Run `npm run build` again. The
+preview server reads the manifest when it starts, so restart it after every `npm run build`.
 
 `npm run password -- --write` makes a new random 13 character password, prints it once, and saves
 only a hash of it to `.env.local`. A hash is a one way fingerprint: the server can check a typed
