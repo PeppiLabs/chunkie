@@ -113,9 +113,10 @@ npm run password -- --write
 npm run dev
 ```
 
-The `password` step prints a new site password once. Keep it, because the dev server asks for it
-before it shows anything (see [The site password](#the-site-password) below). Then open the URL the
-terminal prints, usually <http://localhost:5173>, and enter the password.
+The `password` step prints a new site password once. Keep it, because the visualizer asks for it
+(see [The site password](#the-site-password) below). Then open the URL the terminal prints, usually
+<http://localhost:5173>. The landing page opens without the password. "Launch visualizer" opens
+<http://localhost:5173/app/>, which asks for it.
 
 The first time you reach the Embed step, the browser downloads the embedding model, roughly 23 MB.
 That happens once and your browser caches it, so every later run starts immediately. It needs an
@@ -132,8 +133,16 @@ internet connection for that first download only; everything after it is local.
 
 ### The site password
 
-The dev server and the preview server both ask for a password before they serve anything: no page,
-script, or hot reload connection gets through without it.
+The dev server and the preview server both ask for a password before they serve the visualizer at
+`/app/`. The landing page at `/` is public, along with exactly the scripts, styles and fonts it
+needs. Everything else (the visualizer, its workers, the samples, the concepts guide, and the hot
+reload connection) needs the password. Whatever the landing page imports becomes public, so keep
+visualizer code out of `src/landing.tsx` and the components it uses.
+
+For the built site, the list of public files comes from the manifest that `npm run build` writes.
+If that manifest is missing, for example when `dist/` predates this layout, nothing is public, and
+the preview server says so in the terminal. Run `npm run build` again. The preview server reads the
+manifest when it starts, so restart it after every `npm run build`.
 
 `npm run password -- --write` makes a new random 13 character password, prints it once, and saves
 only a hash of it to `.env.local`. A hash is a one way fingerprint: the server can check a typed
@@ -146,8 +155,8 @@ the password when it is printed, because there is no way to show it again.
 - **A sign-in lasts 3 hours,** then the password is asked for again. The server checks the time
   itself, so a copy of the sign-in cookie stops working at the same moment.
 - **Tests and `npm run build` need no password,** since neither of them serves anything.
-- **`/healthz` is the one open address.** It answers "ok" and nothing else, so an uptime ping or a
-  health check gets a success rather than the login page's 401. It shows nothing of the app.
+- **`/healthz` answers without the password.** It says "ok" and nothing else, so an uptime ping or
+  a health check gets a success rather than the login page's 401. It shows nothing of the app.
 
 The password protects the dev and preview servers only. If you ever serve the built output some
 other way, it is not protected, so use whatever access control that host provides.
@@ -192,8 +201,13 @@ They contain no real people and no personal data.
 ## Project layout
 
 ```
+index.html          The public landing page
+app/index.html      The visualizer, behind the password
 src/
+  landing.tsx       Starts the landing page. Everything it imports is public
+  main.tsx          Starts the visualizer
   lib/
+    siteUrls.ts     Where the two pages live, and old links sent on
     parse.ts        Turns an uploaded file into messages
     chunk.ts        The three chunking strategies
     vector.ts       Cosine similarity and the PCA projection
@@ -211,6 +225,7 @@ public/samples/     The three bundled transcripts
 public/concepts.html  The written guide to every concept
 docs/screenshots/   The images in this readme
 server/passwordGate.ts         The password check in front of the dev and preview servers
+server/publicPaths.ts          Which files the landing page needs, served without the password
 scripts/generate-password.mjs  Makes a new site password and saves only its hash
 ```
 
