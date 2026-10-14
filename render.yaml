@@ -1,0 +1,28 @@
+# Chunkie on Render.
+#
+# For now this defines only the password protected staging site, built from
+# the staging branch. The public live site (chunkie.peppilabs.net, built from
+# main) is added here once main carries this code.
+#
+# Secrets never go in this file. SITE_PASSWORD_HASH is entered in the Render
+# dashboard (sync: false). server/__tests__/renderBlueprint.test.ts checks this
+# file on every test run.
+projects:
+  - name: chunkie
+    environments:
+      - name: staging
+        services:
+          # Every page behind the site password, the landing page included:
+          # SITE_PUBLIC_LANDING is deliberately not set here.
+          - type: web
+            name: chunkie-staging
+            runtime: node
+            plan: free
+            branch: staging
+            autoDeployTrigger: commit
+            buildCommand: npm ci && npm run build
+            startCommand: npm start
+            healthCheckPath: /healthz
+            envVars:
+              - key: SITE_PASSWORD_HASH
+                sync: false

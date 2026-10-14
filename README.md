@@ -131,6 +131,20 @@ internet connection for that first download only; everything after it is local.
 | `npm run typecheck` | Type check without emitting |
 | `npm run password -- --write` | Set a new site password |
 
+### Environments
+
+Chunkie's staging site runs on Render, defined in [`render.yaml`](render.yaml). It is built from
+the `staging` branch and redeploys on every commit to it. Every page except `/healthz` is behind
+the site password, the landing page included.
+
+The staging password hash is entered in the Render dashboard as `SITE_PASSWORD_HASH`, never in
+`render.yaml` or anywhere else in the repository. Make it with `npm run password -- --write` and
+copy the hash from `.env.local`. `server/__tests__/renderBlueprint.test.ts` fails if a secret
+value ever appears in `render.yaml`.
+
+A public live site at <https://chunkie.peppilabs.net>, built from `main`, will be added to the same
+file once `main` carries this code.
+
 ### The site password
 
 The dev server and the preview server both ask for a password before they serve anything, apart
