@@ -3,7 +3,6 @@ import { Button } from '../common/Button';
 
 interface LandingPageProps {
   onLaunchVisualizer: () => void;
-  onNavigateToAuth: (mode?: 'login' | 'register') => void;
 }
 
 interface DemoScenario {
@@ -64,7 +63,7 @@ const DEMO_SCENARIOS: DemoScenario[] = [
   },
 ];
 
-export function LandingPage({ onLaunchVisualizer, onNavigateToAuth }: LandingPageProps) {
+export function LandingPage({ onLaunchVisualizer }: LandingPageProps) {
   const [activeScenarioId, setActiveScenarioId] = useState<string>('health');
   const [customQuery, setCustomQuery] = useState('');
   const [hasSearchedCustom, setHasSearchedCustom] = useState(false);
@@ -128,14 +127,6 @@ export function LandingPage({ onLaunchVisualizer, onNavigateToAuth }: LandingPag
                 >
                   <path d="M5 10h10M10 5l5 5-5 5" />
                 </svg>
-              </Button>
-
-              <Button
-                variant="secondary"
-                size="lg"
-                onClick={() => onNavigateToAuth('register')}
-              >
-                Create Account / Sign In
               </Button>
 
               <a
@@ -532,21 +523,6 @@ export function LandingPage({ onLaunchVisualizer, onNavigateToAuth }: LandingPag
                 for zero-install desktop distribution.
               </p>
             </div>
-
-            <div className="rounded-xl border border-ink-200 p-6 bg-white shadow-sm">
-              <div className="h-8 w-8 rounded-lg bg-brand-100 flex items-center justify-center text-brand-700">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <polyline points="16 11 18 13 22 9" />
-                </svg>
-              </div>
-              <h3 className="mt-4 font-semibold text-ink-900">User Accounts &amp; Presets</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-600">
-                Save your favorite chunking strategies and experiment sessions with user accounts,
-                guest modes, and instant credentials.
-              </p>
-            </div>
           </div>
         </div>
       </section>
@@ -570,12 +546,6 @@ export function LandingPage({ onLaunchVisualizer, onNavigateToAuth }: LandingPag
             >
               Launch Visualizer Now
             </Button>
-            <button
-              onClick={() => onNavigateToAuth('register')}
-              className="inline-flex h-12 items-center justify-center rounded-xl border border-ink-700 bg-ink-800 px-6 text-sm font-medium text-white transition hover:bg-ink-700"
-            >
-              Sign Up / Sign In
-            </button>
           </div>
         </div>
       </section>

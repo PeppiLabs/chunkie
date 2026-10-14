@@ -1,17 +1,21 @@
 import { createHmac, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { posix, resolve } from 'node:path';
 import type { Duplex } from 'node:stream';
 import type { Connect, Plugin } from 'vite';
+import { devPublicCheck, type IsPublic, NOTHING_PUBLIC, previewPublicCheck } from './publicPaths.ts';
 
 /**
  * Password gate middleware.
  *
  * Sits in front of every request the dev and preview servers handle, so no
- * page, script, stylesheet or worker is served until the visitor has entered
- * the site password. WebSocket upgrades, such as the dev server's hot reload
- * socket, never pass through middleware, so they are checked separately before
- * Vite sees them. The one exception is /healthz, which answers "ok" and nothing
- * else, so an uptime ping or a health check has a page that is not an error.
+ * page, script, stylesheet or worker of the visualizer is served until the
+ * visitor has entered the site password. WebSocket upgrades, such as the dev
+ * server's hot reload socket, never pass through middleware, so they are
+ * checked separately before Vite sees them. Two things get through without
+ * the password: /healthz, which answers "ok" and nothing else, so an uptime
+ * ping or a health check has a page that is not an error, and the landing
+ * page with exactly the files it needs (see publicPaths.ts).
  *
  * The password itself is never stored. SITE_PASSWORD_HASH in .env.local holds
  * a salted scrypt hash of it (see .env.example), so reading that file does not
@@ -184,7 +188,36 @@ export type GateOptions = {
    * visitors, and HTTPS has already been handled in front of the app.
    */
   behindRenderProxy?: boolean;
+  /**
+   * Paths served without a password, asked only for GET and HEAD, and only
+   * when the whole request target, query included, is already in canonical
+   * form (see isCanonicalTarget). Vite reads the raw target, so anything the
+   * gate and Vite could read differently is never public, and asks for the
+   * password like any other private page.
+   */
+  isPublic?: IsPublic;
 };
+
+/**
+ * Whether the request target the browser sent can only mean one file, so the
+ * path the gate checks is the file Vite serves.
+ *
+ * The target must have no `%`, `\` or `#`, which are decoded, read as a slash
+ * or cut off somewhere along the way. It must come out of a plain path
+ * normalisation unchanged, so it has no `.` or `..` segment and no `//`
+ * anywhere. That backs up Node's URL parser, which does not always resolve dot
+ * segments: it keeps the `..` in `/node_modules/.vite/deps/../../../src/App.tsx`
+ * because they follow a segment starting with a dot, and Vite then climbs out
+ * to src/App.tsx. The query is normalised too, because Vite normalises the
+ * whole target and `/src/landing.tsx?/../App.tsx` reaches src/App.tsx. Last,
+ * the path before the query must equal the parsed pathname, which catches
+ * whatever the parser rewrites on its own (`//app/` becomes `/`).
+ */
+function isCanonicalTarget(raw: string, pathname: string): boolean {
+  if (/[%\\#]/.test(raw)) return false;
+  if (posix.normalize(raw) !== raw) return false;
+  return raw.split('?')[0] === pathname;
+}
 
 function clientKey(req: IncomingMessage, options: GateOptions): string {
   if (options.behindRenderProxy) {
@@ -360,7 +393,28 @@ export function createPasswordGate(
       return;
     }
 
+    // The visualizer is the page at /app/. Vite's static and HTML handlers
+    // serve app/index.html only for /app/, with the slash, so /app alone would
+    // be a 404. Send the visitor on. This reveals nothing.
+    if (url.pathname === '/app' && (req.method === 'GET' || req.method === 'HEAD')) {
+      res.statusCode = 308;
+      res.setHeader('Location', `/app/${url.search}`);
+      res.setHeader('Cache-Control', 'no-store');
+      res.end();
+      return;
+    }
+
     if (hasSession(req, passwordHash)) {
+      next();
+      return;
+    }
+
+    if (
+      (req.method === 'GET' || req.method === 'HEAD') &&
+      options.isPublic &&
+      isCanonicalTarget(req.url ?? '/', url.pathname) &&
+      options.isPublic(url.pathname)
+    ) {
       next();
       return;
     }
@@ -455,7 +509,13 @@ export function passwordGate(env: Record<string, string | undefined>): Plugin {
     );
   }
   const passwordHash = env.SITE_PASSWORD_HASH ?? '';
-  const gate = createPasswordGate(passwordHash, { behindRenderProxy: env.RENDER === 'true' });
+  // Set once a server starts, when the plugin knows whether it is the dev
+  // server or the preview of a build. Until then nothing is public.
+  let isPublic: IsPublic = NOTHING_PUBLIC;
+  const gate = createPasswordGate(passwordHash, {
+    behindRenderProxy: env.RENDER === 'true',
+    isPublic: (pathname) => isPublic(pathname),
+  });
   const guardUpgrade = createUpgradeGuard(passwordHash);
 
   return {
@@ -474,11 +534,13 @@ export function passwordGate(env: Record<string, string | undefined>): Plugin {
             'server.ws.port and server.ws.server (or server.hmr.port and server.hmr.server).',
         );
       }
+      isPublic = devPublicCheck(server.config.root);
       server.middlewares.use(gate);
       // Prepended so it runs before Vite's own upgrade listener.
       server.httpServer?.prependListener('upgrade', guardUpgrade);
     },
     configurePreviewServer(server) {
+      isPublic = previewPublicCheck(resolve(server.config.root, server.config.build.outDir));
       server.middlewares.use(gate);
       server.httpServer.prependListener('upgrade', guardUpgrade);
     },
