@@ -125,6 +125,10 @@ describe('the live server', () => {
     expect(header(name)).toBe(value);
   });
 
+  it('sets the security headers on normal responses', () => {
+    expect(caddyfile).toMatch(/^\timport security_headers$/m);
+  });
+
   it('does not announce the server software', () => {
     expect(headerBlock).toMatch(/^\s+-Server$/m);
   });
@@ -132,8 +136,7 @@ describe('the live server', () => {
   it('sets the security headers on error responses too', () => {
     expect(caddyfile).toMatch(/^\s+handle_errors \{$/m);
     const body = caddyfile.match(/^\s+handle_errors \{\n([\s\S]*?)^\t\}$/m)?.[1] ?? '';
-    expect(body).toContain('import security_headers');
-    expect(caddyfile).toMatch(/^\s+import security_headers$/m);
+    expect(body).toMatch(/^\t\timport security_headers$/m);
   });
 
   it('does not allow a CDN', () => {
@@ -163,10 +166,21 @@ describe('the live server', () => {
   });
 });
 
+describe('the dependencies behind the live site', () => {
+  it('pins the same onnxruntime-web version transformers.js uses', () => {
+    const read = (path: string) =>
+      JSON.parse(readFileSync(join(ROOT, path), 'utf8')) as { dependencies: Record<string, string> };
+    const root = read('package.json');
+    const transformers = read('node_modules/@huggingface/transformers/package.json');
+    expect(root.dependencies['onnxruntime-web']).toBe(transformers.dependencies['onnxruntime-web']);
+  });
+});
+
 describe('the pages the live site serves', () => {
   it('the embedding runtime ships with the build instead of coming from a CDN', () => {
     const worker = readFileSync(join(ROOT, 'src', 'worker', 'embedder.worker.ts'), 'utf8');
     expect(worker).toMatch(/wasmPaths/);
+    expect(worker).toMatch(/env\.useWasmCache = false/);
     expect(worker).toMatch(/onnxruntime-web\/ort-wasm-simd-threaded/);
   });
 

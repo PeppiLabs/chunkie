@@ -15,17 +15,21 @@ import plainWasm from 'onnxruntime-web/ort-wasm-simd-threaded.wasm?url';
 
 // Nothing here needs the local model cache that a bundler would try to resolve.
 env.allowLocalModels = false;
+// The wasm cache would re-import the runtime from a blob: URL, which the live content security policy forbids. The files are hashed, so the browser caches them anyway.
+env.useWasmCache = false;
 
 /**
  * Serve the ONNX runtime from this site. Left alone, transformers.js fetches it
  * from a CDN, but the live site's content security policy allows scripts and
  * fetches from this site only, so the runtime must ship with the build.
- * Safari gets the plain build and every other browser the asyncify one, the
- * same choice transformers.js makes for its own default.
+ * WebKit browsers get the plain build (every browser on iOS is WebKit, so
+ * matching Safari without Chrome or Android is enough) and the rest get the
+ * asyncify build. This is close to what transformers.js does but not identical,
+ * and either build works for the wasm device.
  */
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-// The runtime's env type may not expose wasmPaths as an object, hence the narrow cast.
-(env.backends.onnx.wasm as { wasmPaths?: { mjs: string; wasm: string } }).wasmPaths = isSafari
+// env.backends.onnx is a Partial, so wasm looks optional, but onnxruntime-web always creates it.
+env.backends.onnx.wasm!.wasmPaths = isSafari
   ? { mjs: plainMjs, wasm: plainWasm }
   : { mjs: asyncifyMjs, wasm: asyncifyWasm };
 
