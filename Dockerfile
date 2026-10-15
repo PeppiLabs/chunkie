@@ -3,7 +3,9 @@
 # source, no password code.
 
 FROM node:22-alpine AS build
-WORKDIR /app
+# Not /app: the visualizer also lives at app/, so Vite's two HTML entries would
+# land on top of each other. /site keeps them apart.
+WORKDIR /site
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
@@ -13,6 +15,6 @@ RUN npm run build && rm -rf dist/.vite
 
 FROM caddy:2-alpine
 COPY Caddyfile /etc/caddy/Caddyfile
-COPY --from=build /app/dist /srv
+COPY --from=build /site/dist /srv
 ENV PORT=8080
 EXPOSE 8080
