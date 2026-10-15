@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Logo } from '../brand/Logo';
 import { Button } from '../common/Button';
+import { PEPPI_LABS_URL } from '../../lib/siteUrls';
 
 export type AppView = 'landing' | 'pipeline';
 
@@ -20,13 +21,14 @@ export function Header({ currentView, onNavigate, onReset }: HeaderProps) {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         {/* Brand & Main Nav */}
         <div className="flex items-center gap-6">
-          <button
-            onClick={() => onNavigate('landing')}
-            className="flex items-center gap-2.5 rounded-lg focus:outline-none"
-            aria-label="Chunkie home page"
+          {/* The Peppi Labs logo goes to peppilabs.net; "What is Chunkie?" is the way home. */}
+          <a
+            href={PEPPI_LABS_URL}
+            className="flex items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            aria-label="Peppi Labs home page"
           >
             <Logo size={28} />
-          </button>
+          </a>
 
           <nav className="hidden md:flex items-center gap-1">
             <button
