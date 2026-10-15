@@ -18,6 +18,8 @@ projects:
             name: chunkie-staging
             runtime: node
             plan: free
+            # Same region as the current site, so the client sees the same latency.
+            region: singapore
             branch: staging
             autoDeployTrigger: commit
             buildCommand: npm ci && npm run build

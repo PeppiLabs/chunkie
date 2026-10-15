@@ -62,6 +62,7 @@ describe('the staging site', () => {
       name: 'chunkie-staging',
       runtime: 'node',
       plan: 'free',
+      region: 'singapore',
       branch: 'staging',
       autoDeployTrigger: 'commit',
       buildCommand: 'npm ci && npm run build',
