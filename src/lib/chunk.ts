@@ -763,7 +763,7 @@ function chunkByTableRows(messages: ChatMessage[], rowsPerChunk: number, rowForm
 
   for (let i = 0; i < messages.length; i += step) {
     const group = messages.slice(i, i + step);
-    let text = '';
+    let text: string;
     if (rowFormat === 'table' && header && !group.includes(messages[0])) {
       text = header + '\n' + group.map((m) => m.text).join('\n');
     } else {

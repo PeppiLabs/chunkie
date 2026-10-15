@@ -577,7 +577,7 @@ export async function parseFile(file: File): Promise<Transcript> {
         docType: 'pdf',
       };
     } catch (err) {
-      throw new Error(`Could not parse PDF: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error(`Could not parse PDF: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
     }
   }
 
@@ -611,7 +611,7 @@ export async function parseFile(file: File): Promise<Transcript> {
         docType: 'docx',
       };
     } catch (err) {
-      throw new Error(`Could not parse DOCX: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error(`Could not parse DOCX: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
     }
   }
 
@@ -621,7 +621,7 @@ export async function parseFile(file: File): Promise<Transcript> {
       const buffer = await file.arrayBuffer();
       return await parseExcel(file.name, buffer);
     } catch (err) {
-      throw new Error(`Could not parse Excel: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error(`Could not parse Excel: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
     }
   }
 
@@ -631,7 +631,7 @@ export async function parseFile(file: File): Promise<Transcript> {
       const buffer = await file.arrayBuffer();
       return await parsePowerPoint(file.name, buffer);
     } catch (err) {
-      throw new Error(`Could not parse PowerPoint: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error(`Could not parse PowerPoint: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
     }
   }
 
@@ -641,7 +641,7 @@ export async function parseFile(file: File): Promise<Transcript> {
       const text = await file.text();
       return parseEmail(file.name, text);
     } catch (err) {
-      throw new Error(`Could not parse Email: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error(`Could not parse Email: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
     }
   }
 
@@ -651,7 +651,7 @@ export async function parseFile(file: File): Promise<Transcript> {
       const text = await file.text();
       return parseHTML(file.name, text);
     } catch (err) {
-      throw new Error(`Could not parse HTML: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error(`Could not parse HTML: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
     }
   }
 
