@@ -39,9 +39,9 @@ function matcherPaths(matcher: string): string[] {
   return match ? match[1].trim().split(/\s+/) : [];
 }
 
-/** The Cache-Control value a `header @matcher Cache-Control ...` line sets. */
+/** The Cache-Control value a `header @matcher Cache-Control ...` line or `header @matcher { ... }` block sets. */
 function cacheControl(matcher: string): string | undefined {
-  const match = caddyfile.match(new RegExp(`^\\s*header @${matcher} Cache-Control (.+)$`, 'm'));
+  const match = caddyfile.match(new RegExp(`^\\s*header @${matcher} (?:\\{\\n(?:[^\\n]*\\n)*?\\s*)?Cache-Control (.+)$`, 'm'));
   return match ? unquote(match[1]) : undefined;
 }
 
@@ -61,18 +61,20 @@ describe('the live image', () => {
   it('builds with Node and serves with Caddy, nothing else', () => {
     const stages = dockerfile.split(/^(?=FROM )/m).filter((stage) => stage.startsWith('FROM '));
     expect(stages).toHaveLength(2);
-    expect(stages[0]).toMatch(/^FROM node:22-alpine AS build$/m);
+    expect(stages[0]).toMatch(/^FROM node:22\.\d+\.\d+-alpine AS build$/m);
     // Building in /app would collide with the visualizer's app/ entry and drop the real index.html.
     expect(dockerfile).toMatch(/^WORKDIR \/site$/m);
     expect(dockerfile).not.toMatch(/^WORKDIR \/app$/m);
+    // The GPU runtime download must be skipped before npm ci runs.
+    expect(dockerfile).toMatch(/^ENV ONNXRUNTIME_NODE_INSTALL=skip$/m);
+    expect(dockerfile.indexOf('ENV ONNXRUNTIME_NODE_INSTALL=skip')).toBeLessThan(dockerfile.indexOf('RUN npm ci'));
     const last = stages[stages.length - 1];
-    expect(last.startsWith('FROM caddy:2-alpine')).toBe(true);
+    expect(last.split('\n')[0]).toMatch(/^FROM caddy:2\.\d+\.\d+-alpine$/);
     const instructions = last
       .split('\n')
       .map((line) => line.trim())
       .filter((line) => line && !line.startsWith('#'));
-    expect(instructions).toEqual([
-      'FROM caddy:2-alpine',
+    expect(instructions.slice(1)).toEqual([
       'COPY Caddyfile /etc/caddy/Caddyfile',
       'COPY --from=build /site/dist /srv',
       'ENV PORT=8080',
@@ -106,7 +108,9 @@ describe('the live server', () => {
 
   it('serves the built files from /srv', () => {
     expect(caddyfile).toMatch(/^\s+root \* \/srv$/m);
-    expect(caddyfile).toMatch(/^\s+file_server$/m);
+    expect(caddyfile).toMatch(/^\s+file_server \{$/m);
+    expect(caddyfile).toMatch(/^\s+precompressed gzip$/m);
+    expect(dockerfile).toMatch(/^RUN find dist .* gzip -9 -k \{\} \+$/m);
   });
 
   it('sends /app on to /app/, answers the health check, and hides the manifest', () => {
@@ -164,6 +168,8 @@ describe('the live server', () => {
   it('caches hashed assets for a year and always revalidates the pages', () => {
     expect(matcherPaths('assets')).toEqual(['/assets/*']);
     expect(cacheControl('assets')).toBe('public, max-age=31536000, immutable');
+    const assetsBlock = caddyfile.match(/^\s*header @assets \{\n([\s\S]*?)^\t\}$/m)?.[1] ?? '';
+    expect(assetsBlock.split('\n').map((line) => line.trim())).toContain('defer');
     expect(matcherPaths('pages')).toEqual(['/', '/index.html', '/app/', '/app/index.html', '/concepts.html', '/concepts.js']);
     expect(cacheControl('pages')).toBe('no-cache');
   });

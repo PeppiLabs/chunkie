@@ -10,3 +10,7 @@ server/data/processed
 docs
 .superpowers
 *.exe
+# Local editor and tool state.
+.claude
+.local
+*.local
