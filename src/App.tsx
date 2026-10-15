@@ -112,7 +112,7 @@ export default function App() {
           <h1
             ref={headingRef}
             tabIndex={-1}
-            className={`font-display text-ink-900 outline-none focus-visible:outline-none ${
+            className={`font-display text-brand-900 outline-none focus-visible:outline-none ${
               step === 'upload' ? 'text-[2.75rem] sm:text-6xl' : 'text-4xl sm:text-[2.75rem]'
             }`}
           >
