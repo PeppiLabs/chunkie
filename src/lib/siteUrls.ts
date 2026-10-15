@@ -11,6 +11,9 @@ export const LANDING_URL = '/';
 /** The visualizer, behind the password. */
 export const APP_URL = '/app/';
 
+/** Chunkie's home page on the live site; the "Chunkie" link beside the logo goes here. */
+export const CHUNKIE_HOME_URL = 'https://chunkie.peppilabs.net/';
+
 /** Peppi Labs, who make Chunkie. The logo links here. */
 export const PEPPI_LABS_URL = 'https://peppilabs.net';
 
