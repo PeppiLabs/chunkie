@@ -15,6 +15,11 @@ dist-ssr
 server/.cache/
 server/data/processed/
 
+# Planning notes and agent scratch written on one machine. They hold local paths
+# and are never part of the repository.
+docs/superpowers/
+.superpowers/
+
 # Logs
 logs
 *.log
