@@ -62,6 +62,9 @@ describe('the live image', () => {
     const stages = dockerfile.split(/^(?=FROM )/m).filter((stage) => stage.startsWith('FROM '));
     expect(stages).toHaveLength(2);
     expect(stages[0]).toMatch(/^FROM node:22-alpine AS build$/m);
+    // Building in /app would collide with the visualizer's app/ entry and drop the real index.html.
+    expect(dockerfile).toMatch(/^WORKDIR \/site$/m);
+    expect(dockerfile).not.toMatch(/^WORKDIR \/app$/m);
     const last = stages[stages.length - 1];
     expect(last.startsWith('FROM caddy:2-alpine')).toBe(true);
     const instructions = last
@@ -71,7 +74,7 @@ describe('the live image', () => {
     expect(instructions).toEqual([
       'FROM caddy:2-alpine',
       'COPY Caddyfile /etc/caddy/Caddyfile',
-      'COPY --from=build /app/dist /srv',
+      'COPY --from=build /site/dist /srv',
       'ENV PORT=8080',
       'EXPOSE 8080',
     ]);
