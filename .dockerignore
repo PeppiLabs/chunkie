@@ -1,0 +1,12 @@
+# Only what the build needs goes into the image build. Secrets, local state and
+# generated files stay on this machine.
+node_modules
+dist
+.git
+.env*
+.renderMCP
+server/.cache
+server/data/processed
+docs
+.superpowers
+*.exe

@@ -142,8 +142,12 @@ The staging password hash is entered in the Render dashboard as `SITE_PASSWORD_H
 copy the hash from `.env.local`. `server/__tests__/renderBlueprint.test.ts` fails if a secret
 value ever appears in `render.yaml`.
 
-A public live site at <https://chunkie.peppilabs.net>, built from `main`, will be added to the same
-file once `main` carries this code.
+The public live site, <https://chunkie.peppilabs.net>, runs on Railway, built from `main` with the
+[`Dockerfile`](Dockerfile): a Node stage builds the app, and a Caddy stage serves the built files and
+nothing else, so no password code exists there. Its security headers, including a content security
+policy, are set in the [`Caddyfile`](Caddyfile). `server/__tests__/liveSite.test.ts` fails if any of
+those headers goes missing, or if a page gains an inline script the policy would block. Changes
+reach live with a pull request from `staging` into `main`.
 
 ### The site password
 
@@ -240,6 +244,10 @@ src/
     layout/         Header, footer, step navigation
 public/samples/     The three bundled transcripts
 public/concepts.html  The written guide to every concept
+public/concepts.js    Marks the section you are reading in the guide's contents
+Dockerfile          Builds the public live site: Node builds it, Caddy serves it
+Caddyfile           The live site's server settings and security headers
+railway.json        Tells Railway to build the Dockerfile and check /healthz
 docs/screenshots/   The images in this readme
 server/passwordGate.ts         The password check in front of the dev and preview servers
 server/publicPaths.ts          Which files the landing page needs, served without the password
