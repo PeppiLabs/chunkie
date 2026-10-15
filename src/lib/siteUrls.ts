@@ -17,6 +17,10 @@ export const PEPPI_LABS_URL = 'https://peppilabs.net';
 /** The other projects Peppi Labs has shared. */
 export const PEPPI_LABS_PROJECTS_URL = 'https://peppilabs.net/projects';
 
+/** Peppi Labs on X and LinkedIn, linked in the footer. */
+export const PEPPI_LABS_X_URL = 'https://x.com/peppilabs';
+export const PEPPI_LABS_LINKEDIN_URL = 'https://www.linkedin.com/company/peppilabs';
+
 /**
  * Hashes that opened part of the app when it lived at the root. Old bookmarks
  * and shared links now land on the landing page, which sends them on.
