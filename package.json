@@ -46,6 +46,7 @@
     "@huggingface/transformers": "^4.2.0",
     "jszip": "^3.10.2",
     "mammoth": "^1.12.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
     "pdfjs-dist": "^6.3.289",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
