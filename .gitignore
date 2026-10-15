@@ -7,6 +7,18 @@ node_modules
 dist
 dist-ssr
 *.local
+*.exe
+*.exe~
+
+# Generated while running the app locally: a downloaded copy of the embedding
+# model and processed output. Never part of the repository.
+server/.cache/
+server/data/processed/
+
+# Planning notes and agent scratch written on one machine. They hold local paths
+# and are never part of the repository.
+docs/superpowers/
+.superpowers/
 
 # Logs
 logs
@@ -44,3 +56,6 @@ Thumbs.db
 /*.mjs
 /playwright-report
 /test-results
+
+# Local Render API key for Claude. Never committed.
+.renderMCP

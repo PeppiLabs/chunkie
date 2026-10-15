@@ -7,7 +7,10 @@
  * generic questions with nothing to indicate why.
  */
 export interface Sample {
-  /** Path under public/, fetched relative to the site root. */
+  /**
+   * URL of the file in public/, from the site root, so it loads the same from
+   * the landing page and from the visualizer at /app/.
+   */
   path: string;
   /** Shown in the picker, and used as the transcript name afterwards. */
   label: string;
@@ -24,7 +27,7 @@ export interface Sample {
 
 export const SAMPLES: Sample[] = [
   {
-    path: 'samples/friends-chat.json',
+    path: `${import.meta.env.BASE_URL}samples/friends-chat.json`,
     label: 'Two friends over a few months',
     blurb: 'A flat move, a job change, a trip, a bad knee, and a car that clicks.',
     questions: [
@@ -34,7 +37,7 @@ export const SAMPLES: Sample[] = [
     ],
   },
   {
-    path: 'samples/team-standup.json',
+    path: `${import.meta.env.BASE_URL}samples/team-standup.json`,
     label: 'Engineering team channel',
     blurb: 'A sprint of caching work, a database migration, and one bad incident.',
     questions: [
@@ -44,13 +47,23 @@ export const SAMPLES: Sample[] = [
     ],
   },
   {
-    path: 'samples/cooking-club.json',
+    path: `${import.meta.env.BASE_URL}samples/cooking-club.json`,
     label: 'Cooking club group chat',
     blurb: 'Risotto that went wrong, bread that would not rise, and a meetup to plan.',
     questions: [
       'what should I leave out for allergies',
       'why is my rice sticky',
       'my bread is too heavy, what now',
+    ],
+  },
+  {
+    path: `${import.meta.env.BASE_URL}samples/rag-guide.md`,
+    label: 'RAG Architecture Guide (Markdown)',
+    blurb: 'A technical document explaining chunking trade-offs, vector space, and prompt injection.',
+    questions: [
+      'stopping hallucinations and made up answers',
+      'why cutting prose hurts understanding',
+      'calculating spatial alignment of vectors',
     ],
   },
 ];

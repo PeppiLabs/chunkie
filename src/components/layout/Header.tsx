@@ -1,28 +1,131 @@
+import { useState } from 'react';
 import { Logo } from '../brand/Logo';
 import { Button } from '../common/Button';
 
+export type AppView = 'landing' | 'pipeline';
+
 interface HeaderProps {
-  /** Clears everything and returns to the first step. */
-  onReset: () => void;
+  currentView: AppView;
+  onNavigate: (view: AppView) => void;
+  onReset?: () => void;
 }
 
 const REPO_URL = 'https://github.com/PeppiLabs/chunkie';
 
-export function Header({ onReset }: HeaderProps) {
+export function Header({ currentView, onNavigate, onReset }: HeaderProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <header className="border-b border-ink-200 bg-white">
-      <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3.5 sm:px-6">
-        <Logo />
+    <header className="sticky top-0 z-40 border-b border-ink-200 bg-white/95 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        {/* Brand & Main Nav */}
+        <div className="flex items-center gap-6">
+          <button
+            onClick={() => onNavigate('landing')}
+            className="flex items-center gap-2.5 rounded-lg focus:outline-none"
+            aria-label="Chunkie home page"
+          >
+            <Logo size={28} />
+          </button>
 
-        <span className="hidden text-sm text-ink-500 sm:inline">Chunkie</span>
+          <nav className="hidden md:flex items-center gap-1">
+            <button
+              onClick={() => onNavigate('landing')}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                currentView === 'landing'
+                  ? 'bg-brand-50 text-brand-700 font-semibold'
+                  : 'text-ink-600 hover:bg-ink-100 hover:text-ink-900'
+              }`}
+            >
+              What is Chunkie?
+            </button>
 
-        <div className="ml-auto flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={onReset}>
-            Start over
-          </Button>
+            <button
+              onClick={() => onNavigate('pipeline')}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                currentView === 'pipeline'
+                  ? 'bg-brand-50 text-brand-700 font-semibold'
+                  : 'text-ink-600 hover:bg-ink-100 hover:text-ink-900'
+              }`}
+            >
+              Visualizer
+            </button>
+
+            <a
+              href="/concepts.html"
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-ink-600 transition hover:bg-ink-100 hover:text-ink-900"
+            >
+              Guide
+            </a>
+
+            <a
+              href={REPO_URL}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-ink-600 transition hover:bg-ink-100 hover:text-ink-900"
+            >
+              Source
+            </a>
+          </nav>
+        </div>
+
+        {/* Right side controls */}
+        <div className="flex items-center gap-2">
+          {/* Start over button, only on visualizer */}
+          {currentView === 'pipeline' && onReset && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onReset}
+              className="hidden sm:inline-flex text-xs"
+            >
+              Start over
+            </Button>
+          )}
+
+          {/* Mobile menu toggle */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-1.5 text-ink-600 hover:text-ink-900 rounded-lg hover:bg-ink-100"
+            aria-label="Toggle navigation menu"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile nav drawer */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-ink-200 bg-white px-4 py-3 space-y-1">
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              onNavigate('landing');
+            }}
+            className={`block w-full text-left rounded-lg px-3 py-2 text-sm font-medium ${
+              currentView === 'landing' ? 'bg-brand-50 text-brand-700' : 'text-ink-700'
+            }`}
+          >
+            What is Chunkie?
+          </button>
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              onNavigate('pipeline');
+            }}
+            className={`block w-full text-left rounded-lg px-3 py-2 text-sm font-medium ${
+              currentView === 'pipeline' ? 'bg-brand-50 text-brand-700' : 'text-ink-700'
+            }`}
+          >
+            Visualizer
+          </button>
           <a
             href="/concepts.html"
-            className="rounded-lg px-3 py-1.5 text-sm text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-900"
+            className="block w-full rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-ink-100"
           >
             Guide
           </a>
@@ -30,12 +133,12 @@ export function Header({ onReset }: HeaderProps) {
             href={REPO_URL}
             target="_blank"
             rel="noreferrer noopener"
-            className="rounded-lg px-3 py-1.5 text-sm text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-900"
+            className="block w-full rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-ink-100"
           >
-            Source
+            Source on GitHub
           </a>
         </div>
-      </div>
+      )}
     </header>
   );
 }

@@ -113,9 +113,10 @@ npm run password -- --write
 npm run dev
 ```
 
-The `password` step prints a new site password once. Keep it, because the dev server asks for it
-before it shows anything (see [The site password](#the-site-password) below). Then open the URL the
-terminal prints, usually <http://localhost:5173>, and enter the password.
+The `password` step prints a new site password once. Keep it, because the visualizer asks for it
+(see [The site password](#the-site-password) below). Then open the URL the terminal prints, usually
+<http://localhost:5173>. Both the landing page and the visualizer at <http://localhost:5173/app/> ask
+for it, unless you add `SITE_PUBLIC_LANDING=true` to `.env.local` to leave the landing page open.
 
 The first time you reach the Embed step, the browser downloads the embedding model, roughly 23 MB.
 That happens once and your browser caches it, so every later run starts immediately. It needs an
@@ -130,10 +131,40 @@ internet connection for that first download only; everything after it is local.
 | `npm run typecheck` | Type check without emitting |
 | `npm run password -- --write` | Set a new site password |
 
+### Environments
+
+Chunkie's staging site is the Render web service `chunkie`, at <https://chunkie.onrender.com>. It is
+built from the `staging` branch and redeploys on every commit to it. Every page except `/healthz`
+is behind the site password, the landing page included. [`render.yaml`](render.yaml) records the
+same settings, so the service can be recreated from it as a Blueprint if that is ever needed.
+
+The staging password hash is entered in the Render dashboard as `SITE_PASSWORD_HASH`, never in
+`render.yaml` or anywhere else in the repository. Make it with `npm run password -- --write` and
+copy the hash from `.env.local`. `server/__tests__/renderBlueprint.test.ts` fails if a secret
+value ever appears in `render.yaml`.
+
+The public live site, <https://chunkie.peppilabs.net>, is set up to run on Railway, built from `main`
+with the [`Dockerfile`](Dockerfile): a Node stage builds the app, and a Caddy stage serves the built files and
+nothing else, so no password code exists there. Its security headers, including a content security
+policy, are set in the [`Caddyfile`](Caddyfile). `server/__tests__/liveSite.test.ts` fails if any of
+those headers goes missing, or if a page gains an inline script the policy would block. Changes
+reach live with a pull request from `staging` into `main`.
+
 ### The site password
 
-The dev server and the preview server both ask for a password before they serve anything: no page,
-script, or hot reload connection gets through without it.
+The dev server and the preview server both ask for a password before they serve anything, apart
+from `/healthz`. That is how staging runs. To show the landing page at `/` without the password,
+set `SITE_PUBLIC_LANDING=true` in `.env.local`. Then the landing page and exactly the scripts,
+styles and fonts it needs are public, and everything else (the visualizer, its workers, the
+samples, the concepts guide, and the hot reload connection) still needs the password. Any value
+other than exactly `true` keeps the landing page private. Whatever the landing page imports
+becomes public when it is on, so keep visualizer code out of `src/landing.tsx` and the
+components it uses.
+
+With `SITE_PUBLIC_LANDING=true`, the built site's list of public files comes from the manifest that
+`npm run build` writes. If that manifest is missing, for example when `dist/` predates this layout,
+nothing is public, and the preview server says so in the terminal. Run `npm run build` again. The
+preview server reads the manifest when it starts, so restart it after every `npm run build`.
 
 `npm run password -- --write` makes a new random 13 character password, prints it once, and saves
 only a hash of it to `.env.local`. A hash is a one way fingerprint: the server can check a typed
@@ -146,8 +177,8 @@ the password when it is printed, because there is no way to show it again.
 - **A sign-in lasts 3 hours,** then the password is asked for again. The server checks the time
   itself, so a copy of the sign-in cookie stops working at the same moment.
 - **Tests and `npm run build` need no password,** since neither of them serves anything.
-- **`/healthz` is the one open address.** It answers "ok" and nothing else, so an uptime ping or a
-  health check gets a success rather than the login page's 401. It shows nothing of the app.
+- **`/healthz` answers without the password.** It says "ok" and nothing else, so an uptime ping or
+  a health check gets a success rather than the login page's 401. It shows nothing of the app.
 
 The password protects the dev and preview servers only. If you ever serve the built output some
 other way, it is not protected, so use whatever access control that host provides.
@@ -192,8 +223,13 @@ They contain no real people and no personal data.
 ## Project layout
 
 ```
+index.html          The public landing page
+app/index.html      The visualizer, behind the password
 src/
+  landing.tsx       Starts the landing page. Everything it imports is public
+  main.tsx          Starts the visualizer
   lib/
+    siteUrls.ts     Where the two pages live, and old links sent on
     parse.ts        Turns an uploaded file into messages
     chunk.ts        The three chunking strategies
     vector.ts       Cosine similarity and the PCA projection
@@ -209,8 +245,13 @@ src/
     layout/         Header, footer, step navigation
 public/samples/     The three bundled transcripts
 public/concepts.html  The written guide to every concept
+public/concepts.js    Marks the section you are reading in the guide's contents
+Dockerfile          Builds the public live site: Node builds it, Caddy serves it
+Caddyfile           The live site's server settings and security headers
+railway.json        Tells Railway to build the Dockerfile and check /healthz
 docs/screenshots/   The images in this readme
 server/passwordGate.ts         The password check in front of the dev and preview servers
+server/publicPaths.ts          Which files the landing page needs, served without the password
 scripts/generate-password.mjs  Makes a new site password and saves only its hash
 ```
 
