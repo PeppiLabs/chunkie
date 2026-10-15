@@ -56,3 +56,6 @@ Thumbs.db
 /*.mjs
 /playwright-report
 /test-results
+
+# Local Render API key for Claude. Never committed.
+.renderMCP
