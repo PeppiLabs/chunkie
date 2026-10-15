@@ -133,9 +133,10 @@ internet connection for that first download only; everything after it is local.
 
 ### Environments
 
-Chunkie's staging site runs on Render, defined in [`render.yaml`](render.yaml). It is built from
-the `staging` branch and redeploys on every commit to it. Every page except `/healthz` is behind
-the site password, the landing page included.
+Chunkie's staging site is the Render web service `chunkie`, at <https://chunkie.onrender.com>. It is
+built from the `staging` branch and redeploys on every commit to it. Every page except `/healthz`
+is behind the site password, the landing page included. [`render.yaml`](render.yaml) records the
+same settings, so the service can be recreated from it as a Blueprint if that is ever needed.
 
 The staging password hash is entered in the Render dashboard as `SITE_PASSWORD_HASH`, never in
 `render.yaml` or anywhere else in the repository. Make it with `npm run password -- --write` and
