@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Logo } from '../brand/Logo';
 import { Button } from '../common/Button';
-import { LANDING_URL, PEPPI_LABS_URL } from '../../lib/siteUrls';
+import { CHUNKIE_HOME_URL, PEPPI_LABS_URL } from '../../lib/siteUrls';
 
 export type AppView = 'landing' | 'pipeline';
 
@@ -32,7 +32,7 @@ export function Header({ currentView, onNavigate, onReset }: HeaderProps) {
             </a>
             <span aria-hidden="true" className="h-5 w-px bg-ink-200" />
             <a
-              href={LANDING_URL}
+              href={CHUNKIE_HOME_URL}
               aria-current={currentView === 'landing' ? 'page' : undefined}
               className="rounded-lg text-base font-semibold tracking-tight text-ink-900 transition hover:text-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
             >
