@@ -20,9 +20,16 @@ const railway = JSON.parse(readFileSync(join(ROOT, 'railway.json'), 'utf8')) as 
 
 const unquote = (value: string) => value.trim().replace(/^"(.*)"$/, '$1');
 
-/** The value of a header set on every response, from the Caddyfile's unmatched `header { ... }` block. */
+/**
+ * The text of the `(security_headers)` snippet's `header { ... }` block, which
+ * the site and its error handler both import. Searching only here means a
+ * stray line elsewhere in the file cannot satisfy a header check.
+ */
+const headerBlock = caddyfile.match(/^\(security_headers\) \{\n\theader \{\n([\s\S]*?)^\t\}$/m)?.[1] ?? '';
+
+/** The value of a header set on every response, from the snippet's `header { ... }` block. */
 function header(name: string): string | undefined {
-  const match = caddyfile.match(new RegExp(`^\\s+${name} (.+)$`, 'm'));
+  const match = headerBlock.match(new RegExp(`^\\s+${name} (.+)$`, 'm'));
   return match ? unquote(match[1]) : undefined;
 }
 
@@ -52,10 +59,22 @@ function cspDirectives(): Map<string, string[]> {
 
 describe('the live image', () => {
   it('builds with Node and serves with Caddy, nothing else', () => {
-    expect(dockerfile).toMatch(/^FROM node:22-alpine AS build$/m);
-    expect(dockerfile).toMatch(/^FROM caddy:2-alpine$/m);
-    expect(dockerfile).toMatch(/^COPY Caddyfile \/etc\/caddy\/Caddyfile$/m);
-    expect(dockerfile).toMatch(/^COPY --from=build \/app\/dist \/srv$/m);
+    const stages = dockerfile.split(/^(?=FROM )/m).filter((stage) => stage.startsWith('FROM '));
+    expect(stages).toHaveLength(2);
+    expect(stages[0]).toMatch(/^FROM node:22-alpine AS build$/m);
+    const last = stages[stages.length - 1];
+    expect(last.startsWith('FROM caddy:2-alpine')).toBe(true);
+    const instructions = last
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('#'));
+    expect(instructions).toEqual([
+      'FROM caddy:2-alpine',
+      'COPY Caddyfile /etc/caddy/Caddyfile',
+      'COPY --from=build /app/dist /srv',
+      'ENV PORT=8080',
+      'EXPOSE 8080',
+    ]);
   });
 
   it('drops the build manifest, which only the staging password gate needs', () => {
@@ -107,7 +126,18 @@ describe('the live server', () => {
   });
 
   it('does not announce the server software', () => {
-    expect(caddyfile).toMatch(/^\s+-Server$/m);
+    expect(headerBlock).toMatch(/^\s+-Server$/m);
+  });
+
+  it('sets the security headers on error responses too', () => {
+    expect(caddyfile).toMatch(/^\s+handle_errors \{$/m);
+    const body = caddyfile.match(/^\s+handle_errors \{\n([\s\S]*?)^\t\}$/m)?.[1] ?? '';
+    expect(body).toContain('import security_headers');
+    expect(caddyfile).toMatch(/^\s+import security_headers$/m);
+  });
+
+  it('does not allow a CDN', () => {
+    expect(caddyfile).not.toContain('jsdelivr');
   });
 
   it('has a content security policy with no way around it', () => {
@@ -128,12 +158,18 @@ describe('the live server', () => {
   it('caches hashed assets for a year and always revalidates the pages', () => {
     expect(matcherPaths('assets')).toEqual(['/assets/*']);
     expect(cacheControl('assets')).toBe('public, max-age=31536000, immutable');
-    expect(matcherPaths('pages')).toEqual(['/', '/index.html', '/app/', '/app/index.html', '/concepts.html']);
+    expect(matcherPaths('pages')).toEqual(['/', '/index.html', '/app/', '/app/index.html', '/concepts.html', '/concepts.js']);
     expect(cacheControl('pages')).toBe('no-cache');
   });
 });
 
 describe('the pages the live site serves', () => {
+  it('the embedding runtime ships with the build instead of coming from a CDN', () => {
+    const worker = readFileSync(join(ROOT, 'src', 'worker', 'embedder.worker.ts'), 'utf8');
+    expect(worker).toMatch(/wasmPaths/);
+    expect(worker).toMatch(/onnxruntime-web\/ort-wasm-simd-threaded/);
+  });
+
   it('have no inline script, which the content security policy would block', () => {
     const pages = [
       join(ROOT, 'index.html'),

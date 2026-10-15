@@ -142,8 +142,8 @@ The staging password hash is entered in the Render dashboard as `SITE_PASSWORD_H
 copy the hash from `.env.local`. `server/__tests__/renderBlueprint.test.ts` fails if a secret
 value ever appears in `render.yaml`.
 
-The public live site, <https://chunkie.peppilabs.net>, runs on Railway, built from `main` with the
-[`Dockerfile`](Dockerfile): a Node stage builds the app, and a Caddy stage serves the built files and
+The public live site, <https://chunkie.peppilabs.net>, is set up to run on Railway, built from `main`
+with the [`Dockerfile`](Dockerfile): a Node stage builds the app, and a Caddy stage serves the built files and
 nothing else, so no password code exists there. Its security headers, including a content security
 policy, are set in the [`Caddyfile`](Caddyfile). `server/__tests__/liveSite.test.ts` fails if any of
 those headers goes missing, or if a page gains an inline script the policy would block. Changes

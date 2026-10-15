@@ -1,5 +1,9 @@
 /// <reference lib="webworker" />
 import { pipeline, env, type FeatureExtractionPipeline } from '@huggingface/transformers';
+import asyncifyMjs from 'onnxruntime-web/ort-wasm-simd-threaded.asyncify.mjs?url';
+import asyncifyWasm from 'onnxruntime-web/ort-wasm-simd-threaded.asyncify.wasm?url';
+import plainMjs from 'onnxruntime-web/ort-wasm-simd-threaded.mjs?url';
+import plainWasm from 'onnxruntime-web/ort-wasm-simd-threaded.wasm?url';
 
 /**
  * Runs the embedding model off the main thread.
@@ -11,6 +15,19 @@ import { pipeline, env, type FeatureExtractionPipeline } from '@huggingface/tran
 
 // Nothing here needs the local model cache that a bundler would try to resolve.
 env.allowLocalModels = false;
+
+/**
+ * Serve the ONNX runtime from this site. Left alone, transformers.js fetches it
+ * from a CDN, but the live site's content security policy allows scripts and
+ * fetches from this site only, so the runtime must ship with the build.
+ * Safari gets the plain build and every other browser the asyncify one, the
+ * same choice transformers.js makes for its own default.
+ */
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+// The runtime's env type may not expose wasmPaths as an object, hence the narrow cast.
+(env.backends.onnx.wasm as { wasmPaths?: { mjs: string; wasm: string } }).wasmPaths = isSafari
+  ? { mjs: plainMjs, wasm: plainWasm }
+  : { mjs: asyncifyMjs, wasm: asyncifyWasm };
 
 /** Sentence embedding model: small enough to download quickly, good enough to teach with. */
 export const MODEL_ID = 'Xenova/all-MiniLM-L6-v2';

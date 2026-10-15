@@ -6,21 +6,9 @@
 	admin off
 }
 
-:{$PORT:8080} {
-	root * /srv
-	encode zstd gzip
-
-	# Railway's health check.
-	respond /healthz "ok" 200
-
-	# /app without the slash is what people type.
-	redir /app /app/ permanent
-
-	# The build manifest is only read by the staging password gate. The
-	# Dockerfile deletes it; this is the second lock.
-	@hidden path /.vite/*
-	respond @hidden 404
-
+# Errors (a 404 for a missing file, a 405 for a POST) are written outside the
+# normal handler chain, so the headers are imported there too.
+(security_headers) {
 	header {
 		# Cross origin isolation lets the embedding model use its faster
 		# multi threaded runtime. Same values the dev and preview servers send.
@@ -39,14 +27,37 @@
 		Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://huggingface.co https://*.huggingface.co https://*.hf.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
 		-Server
 	}
+}
+
+:{$PORT:8080} {
+	root * /srv
+	encode zstd gzip
+
+	# Railway's health check.
+	respond /healthz "ok" 200
+
+	# /app without the slash is what people type.
+	redir /app /app/ permanent
+
+	# The build manifest is only read by the staging password gate. The
+	# Dockerfile deletes it; this is the second lock.
+	@hidden path /.vite/*
+	respond @hidden 404
+
+	import security_headers
 
 	# File names in /assets carry a content hash, so they never change.
 	@assets path /assets/*
 	header @assets Cache-Control "public, max-age=31536000, immutable"
 
 	# Pages are always revalidated, so a deploy shows up at once.
-	@pages path / /index.html /app/ /app/index.html /concepts.html
+	@pages path / /index.html /app/ /app/index.html /concepts.html /concepts.js
 	header @pages Cache-Control no-cache
 
 	file_server
+
+	handle_errors {
+		import security_headers
+		respond "{err.status_code} {err.status_text}" {err.status_code}
+	}
 }
