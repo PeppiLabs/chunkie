@@ -1,5 +1,9 @@
 /// <reference lib="webworker" />
 import { pipeline, env, type FeatureExtractionPipeline } from '@huggingface/transformers';
+import asyncifyMjs from 'onnxruntime-web/ort-wasm-simd-threaded.asyncify.mjs?url';
+import asyncifyWasm from 'onnxruntime-web/ort-wasm-simd-threaded.asyncify.wasm?url';
+import plainMjs from 'onnxruntime-web/ort-wasm-simd-threaded.mjs?url';
+import plainWasm from 'onnxruntime-web/ort-wasm-simd-threaded.wasm?url';
 
 /**
  * Runs the embedding model off the main thread.
@@ -11,6 +15,23 @@ import { pipeline, env, type FeatureExtractionPipeline } from '@huggingface/tran
 
 // Nothing here needs the local model cache that a bundler would try to resolve.
 env.allowLocalModels = false;
+// The wasm cache would re-import the runtime from a blob: URL, which the live content security policy forbids. The files are hashed, so the browser caches them anyway.
+env.useWasmCache = false;
+
+/**
+ * Serve the ONNX runtime from this site. Left alone, transformers.js fetches it
+ * from a CDN, but the live site's content security policy allows scripts and
+ * fetches from this site only, so the runtime must ship with the build.
+ * WebKit browsers get the plain build (every browser on iOS is WebKit, so
+ * matching Safari without Chrome or Android is enough) and the rest get the
+ * asyncify build. This is close to what transformers.js does but not identical,
+ * and either build works for the wasm device.
+ */
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+// env.backends.onnx is a Partial, so wasm looks optional, but onnxruntime-web always creates it.
+env.backends.onnx.wasm!.wasmPaths = isSafari
+  ? { mjs: plainMjs, wasm: plainWasm }
+  : { mjs: asyncifyMjs, wasm: asyncifyWasm };
 
 /** Sentence embedding model: small enough to download quickly, good enough to teach with. */
 export const MODEL_ID = 'Xenova/all-MiniLM-L6-v2';

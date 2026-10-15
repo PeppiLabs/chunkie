@@ -1,10 +1,11 @@
 import { execFileSync } from 'node:child_process';
 import { createHmac, randomBytes } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createServer, request, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import type { Connect } from 'vite';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createPasswordGate,
@@ -14,6 +15,7 @@ import {
   PASSWORD_LENGTH,
   passwordGate,
 } from '../passwordGate';
+import { BUILD_MANIFEST, LANDING_BUILD_PATHS } from './manifestFixture';
 
 const PASSWORD = 'test-pass-13c';
 let HASH: string;
@@ -22,15 +24,19 @@ beforeAll(async () => {
   HASH = await hashPassword(PASSWORD);
 });
 
-/** Starts a server running the gate and returns its base URL and a stop function. */
-async function serveGate(passwordHash: string, options?: GateOptions) {
-  const gate = createPasswordGate(passwordHash, options);
-  const server = createServer((req, res) => gate(req, res, () => res.end('the real page')));
+/** Starts a server running `handler` in front of "the real page", and returns its base URL. */
+async function serveHandler(handler: Connect.NextHandleFunction) {
+  const server = createServer((req, res) => handler(req, res, () => res.end('the real page')));
   await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
   return {
     base: `http://127.0.0.1:${(server.address() as AddressInfo).port}`,
     stop: () => new Promise((done) => server.close(done)),
   };
+}
+
+/** Starts a server running the gate and returns its base URL and a stop function. */
+function serveGate(passwordHash: string, options?: GateOptions) {
+  return serveHandler(createPasswordGate(passwordHash, options));
 }
 
 function postPassword(
@@ -44,6 +50,18 @@ function postPassword(
     headers: { 'Content-Type': 'application/x-www-form-urlencoded', ...headers },
     body: new URLSearchParams({ password }).toString(),
     redirect: 'manual',
+  });
+}
+
+/** Sends a GET with the path exactly as written. fetch would normalise it first. */
+function rawGet(base: string, path: string): Promise<number> {
+  return new Promise((done, fail) => {
+    const req = request(base, { path }, (res) => {
+      res.resume();
+      done(res.statusCode ?? 0);
+    });
+    req.on('error', fail);
+    req.end();
   });
 }
 
@@ -308,6 +326,207 @@ describe('createPasswordGate behind Render', () => {
     }
     const res = await loginFrom('203.0.113.7', PASSWORD, { 'X-Forwarded-For': '10.0.0.99' });
     expect(res.status).toBe(429);
+  });
+});
+
+describe('createPasswordGate with public paths', () => {
+  const PUBLIC = new Set(['/', '/assets/landing.js']);
+  let site: Awaited<ReturnType<typeof serveGate>>;
+  let base: string;
+
+  beforeEach(async () => {
+    site = await serveGate(HASH, {
+      isPublic: (pathname) => PUBLIC.has(pathname) || pathname.startsWith('/node_modules/'),
+    });
+    base = site.base;
+  });
+
+  afterEach(async () => {
+    await site.stop();
+  });
+
+  it('serves a public page and its files without a password', async () => {
+    const page = await fetch(`${base}/?from=link`, { headers: { Accept: 'text/html' } });
+    expect(page.status).toBe(200);
+    expect(await page.text()).toBe('the real page');
+    expect((await fetch(`${base}/assets/landing.js`)).status).toBe(200);
+    expect((await fetch(`${base}/assets/landing.js`, { method: 'HEAD' })).status).toBe(200);
+  });
+
+  it('serves a public file asked for with a plain query, such as a cache buster', async () => {
+    const res = await fetch(`${base}/assets/landing.js?v=abc123`);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('the real page');
+  });
+
+  it.each(['/app/', '/assets/app.js', '/concepts.html', '/samples/friends-chat.json'])(
+    'keeps %s behind the password',
+    async (path) => {
+      const res = await fetch(base + path, { headers: { Accept: 'text/html' } });
+      expect(res.status).toBe(401);
+      expect(await res.text()).toContain('This site is protected');
+    },
+  );
+
+  it('sends /app on to /app/, keeping the query', async () => {
+    const res = await fetch(`${base}/app?x=1`, { redirect: 'manual' });
+    expect(res.status).toBe(308);
+    expect(res.headers.get('location')).toBe('/app/?x=1');
+  });
+
+  it('still treats a POST to a public path as a login attempt', async () => {
+    const res = await postPassword(base, 'test-pass-13x', '/');
+    expect(res.status).toBe(401);
+    expect(await res.text()).toContain('Incorrect password');
+  });
+
+  it('signs the visitor in from a public page', async () => {
+    const res = await postPassword(base, PASSWORD, '/');
+    expect(res.status).toBe(303);
+    expect(res.headers.get('location')).toBe('/');
+  });
+
+  it.each(['OPTIONS', 'PUT', 'DELETE'])('keeps a public path behind the password for %s', async (method) => {
+    expect((await fetch(`${base}/assets/landing.js`, { method })).status).toBe(401);
+  });
+
+  it.each([
+    '/node_modules/..%2fsrc/App.tsx',
+    '/node_modules/%2e%2e/src/App.tsx',
+    '/node_modules/../src/App.tsx',
+    '/node_modules\\..\\src\\App.tsx',
+    '/assets/landing%2Ejs',
+    '//app/',
+    '//concepts.html',
+    '//x/node_modules/a.js',
+    '/assets\\landing.js',
+    // Node's URL parser leaves these `..` in place, after a segment starting with a dot.
+    '/node_modules/.vite/deps/../../../src/App.tsx',
+    '/node_modules/.v/../x.js',
+    // Vite normalises the query along with the path.
+    '/assets/landing.js?/../app.js',
+    '/assets/landing.js?x=/./y',
+    '/node_modules//a.js',
+    '/assets/landing.js#x',
+  ])('refuses the disguised path %s', async (path) => {
+    expect(await rawGet(base, path)).toBe(401);
+  });
+});
+
+describe('passwordGate on the preview server', () => {
+  let root: string;
+  let site: Awaited<ReturnType<typeof serveHandler>> | undefined;
+
+  beforeEach(() => {
+    root = mkdtempSync(join(tmpdir(), 'chunkie-preview-'));
+  });
+
+  afterEach(async () => {
+    await site?.stop();
+    site = undefined;
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  /** Runs the plugin's preview hook against a stand-in server and serves the gate it installs. */
+  async function startPreview(extraEnv: Record<string, string> = {}) {
+    let installed: Connect.NextHandleFunction | undefined;
+    const plugin = passwordGate({ SITE_PASSWORD_HASH: HASH, ...extraEnv });
+    const hook = plugin.configurePreviewServer as unknown as (server: unknown) => void;
+    hook({
+      config: { root, build: { outDir: 'dist' } },
+      middlewares: { use: (handler: Connect.NextHandleFunction) => (installed = handler) },
+      httpServer: { prependListener: () => undefined },
+    });
+    if (!installed) throw new Error('The plugin did not install the gate.');
+    site = await serveHandler(installed);
+    return site.base;
+  }
+
+  it('serves the landing page of the build without a password, and nothing else', async () => {
+    mkdirSync(join(root, 'dist', '.vite'), { recursive: true });
+    writeFileSync(join(root, 'dist', '.vite', 'manifest.json'), JSON.stringify(BUILD_MANIFEST));
+    const base = await startPreview({ SITE_PUBLIC_LANDING: 'true' });
+
+    for (const path of LANDING_BUILD_PATHS) {
+      expect((await fetch(base + path)).status, path).toBe(200);
+    }
+    for (const path of ['/app/', '/assets/app-EEEE.js', '/assets/embedder.worker-GGGG.js']) {
+      expect((await fetch(base + path)).status, path).toBe(401);
+    }
+  });
+
+  it('keeps everything behind the password when the build has no manifest', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const base = await startPreview({ SITE_PUBLIC_LANDING: 'true' });
+    expect((await fetch(`${base}/`)).status).toBe(401);
+    expect(warn).toHaveBeenCalledOnce();
+    warn.mockRestore();
+  });
+
+  it('keeps the landing page behind the password unless SITE_PUBLIC_LANDING is true', async () => {
+    mkdirSync(join(root, 'dist', '.vite'), { recursive: true });
+    writeFileSync(join(root, 'dist', '.vite', 'manifest.json'), JSON.stringify(BUILD_MANIFEST));
+    const base = await startPreview();
+
+    for (const path of LANDING_BUILD_PATHS) {
+      expect((await fetch(base + path)).status, path).toBe(401);
+    }
+    // The health check stays open, so Render can still see the service is up.
+    expect((await fetch(`${base}/healthz`)).status).toBe(200);
+  });
+
+  it.each(['false', 'TRUE', 'True', '1', 'yes', ' true', 'true '])(
+    'treats SITE_PUBLIC_LANDING=%j as not public',
+    async (value) => {
+      mkdirSync(join(root, 'dist', '.vite'), { recursive: true });
+      writeFileSync(join(root, 'dist', '.vite', 'manifest.json'), JSON.stringify(BUILD_MANIFEST));
+      const base = await startPreview({ SITE_PUBLIC_LANDING: value });
+      expect((await fetch(`${base}/`)).status).toBe(401);
+    },
+  );
+});
+
+describe('passwordGate on the dev server', () => {
+  let root: string;
+  let site: Awaited<ReturnType<typeof serveHandler>> | undefined;
+
+  beforeEach(() => {
+    root = mkdtempSync(join(tmpdir(), 'chunkie-dev-'));
+    mkdirSync(join(root, 'src'), { recursive: true });
+    writeFileSync(join(root, 'src', 'landing.tsx'), 'export {};');
+  });
+
+  afterEach(async () => {
+    await site?.stop();
+    site = undefined;
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  /** Runs the plugin's dev hook against a stand-in server and serves the gate it installs. */
+  async function startDev(extraEnv: Record<string, string> = {}) {
+    let installed: Connect.NextHandleFunction | undefined;
+    const plugin = passwordGate({ SITE_PASSWORD_HASH: HASH, ...extraEnv });
+    const hook = plugin.configureServer as unknown as (server: unknown) => void;
+    hook({
+      config: { root, server: {} },
+      middlewares: { use: (handler: Connect.NextHandleFunction) => (installed = handler) },
+      httpServer: null,
+    });
+    if (!installed) throw new Error('The plugin did not install the gate.');
+    site = await serveHandler(installed);
+    return site.base;
+  }
+
+  it('keeps the landing page behind the password by default', async () => {
+    const base = await startDev();
+    expect((await fetch(`${base}/`)).status).toBe(401);
+    expect((await fetch(`${base}/src/landing.tsx`)).status).toBe(401);
+  });
+
+  it('serves the landing page without a password when SITE_PUBLIC_LANDING is true', async () => {
+    const base = await startDev({ SITE_PUBLIC_LANDING: 'true' });
+    expect((await fetch(`${base}/`)).status).toBe(200);
+    expect((await fetch(`${base}/src/landing.tsx`)).status).toBe(200);
   });
 });
 

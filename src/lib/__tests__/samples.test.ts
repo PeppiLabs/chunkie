@@ -6,10 +6,16 @@ import { parseTranscript } from '../parse';
 describe('bundled samples', () => {
   it('every sample file exists and parses', () => {
     for (const sample of SAMPLES) {
-      const raw = readFileSync(`public/${sample.path}`, 'utf8');
+      const raw = readFileSync(`public/${sample.path.slice(import.meta.env.BASE_URL.length)}`, 'utf8');
       const transcript = parseTranscript(sample.label, raw);
       expect(transcript.messages.length, sample.label).toBeGreaterThan(10);
       expect(transcript.skipped, sample.label).toBe(0);
+    }
+  });
+
+  it('every sample loads from the site root, so it works from /app/ as well', () => {
+    for (const sample of SAMPLES) {
+      expect(sample.path, sample.label).toMatch(new RegExp(`^${import.meta.env.BASE_URL}samples/`));
     }
   });
 
@@ -39,7 +45,7 @@ describe('bundled samples', () => {
     ]);
 
     for (const sample of SAMPLES) {
-      const raw = readFileSync(`public/${sample.path}`, 'utf8');
+      const raw = readFileSync(`public/${sample.path.slice(import.meta.env.BASE_URL.length)}`, 'utf8');
       const body = parseTranscript(sample.label, raw)
         .messages.map((m) => m.text.toLowerCase())
         .join(' ');

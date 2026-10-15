@@ -1,30 +1,27 @@
 import { useEffect, useRef } from 'react';
+import { Header, type AppView } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
-import { Header } from './components/layout/Header';
 import { StepNav } from './components/layout/StepNav';
 import { ChunkStep } from './components/steps/ChunkStep';
 import { EmbedStep } from './components/steps/EmbedStep';
 import { SearchStep } from './components/steps/SearchStep';
 import { UploadStep } from './components/steps/UploadStep';
+import { LANDING_URL } from './lib/siteUrls';
 import { useRagPipeline, STEPS, type Step } from './hooks/useRagPipeline';
 
 /**
- * The heading for each stage.
- *
- * Every stage needs its own h1. Without one, three of the four screens had no
- * top level heading at all, and the explainer h3s in the sidebar read as
- * children of whichever panel heading happened to come before them.
+ * The heading for each visualizer pipeline stage.
  */
 const STEP_HEADINGS: Record<Step, { title: string; blurb: string }> = {
   upload: {
     title: 'See how RAG actually works',
     blurb:
-      'When a chatbot answers questions about your documents, four things happen behind the scenes. Load a chat below and watch each one, with nothing hidden and no jargon assumed.',
+      'When a chatbot answers questions about your documents, four things happen behind the scenes. Load a chat or document below and watch each one, with nothing hidden and no jargon assumed.',
   },
   chunk: {
-    title: 'Cut the chat into chunks',
+    title: 'Cut the document into chunks',
     blurb:
-      'A search can only point at a whole piece, so the transcript has to be divided first. How you divide it changes what the search can find.',
+      'A search can only point at a whole piece, so the transcript or document has to be divided first. How you divide it changes what the search can find.',
   },
   embed: {
     title: 'Turn the chunks into numbers',
@@ -38,13 +35,6 @@ const STEP_HEADINGS: Record<Step, { title: string; blurb: string }> = {
   },
 };
 
-/**
- * RAG Visualizer.
- *
- * Four stages, in order: load a chat, cut it into chunks, turn the chunks into
- * vectors, then search those vectors by meaning. Every stage runs in the
- * browser and carries a plain-language explanation of what just happened.
- */
 export default function App() {
   const pipeline = useRagPipeline();
   const {
@@ -74,18 +64,19 @@ export default function App() {
   } = pipeline;
 
   const headingRef = useRef<HTMLHeadingElement>(null);
-  // Tracks the step the heading was last moved for. Comparing against the
-  // current step is safe under StrictMode, which invokes effects twice: a
-  // simple "first render" flag gets flipped by the first pass and then focuses
-  // on the second, putting a ring on the heading before anyone has clicked.
   const focusedForStep = useRef(step);
 
+  // Old links to the overview, from when the landing page was a view in here,
+  // go to the landing page, which is its own page outside the password.
+  useEffect(() => {
+    const hash = window.location.hash.toLowerCase();
+    if (hash === '#overview' || hash === '#landing' || hash === '#home') {
+      window.location.assign(LANDING_URL);
+    }
+  }, []);
+
   /**
-   * Moves focus to the new stage heading and returns to the top of the page.
-   *
-   * Clicking a button that swaps the whole screen used to drop focus onto the
-   * body, so a keyboard user restarted from the top of the document with
-   * nothing announcing that anything had changed.
+   * Moves focus to the new stage heading when pipeline step changes.
    */
   useEffect(() => {
     if (focusedForStep.current === step) return;
@@ -95,16 +86,21 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
 
+  const handleNavigate = (view: AppView) => {
+    if (view === 'landing') window.location.assign(LANDING_URL);
+    else window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const heading = STEP_HEADINGS[step];
   const stepNumber = STEPS.indexOf(step) + 1;
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header onReset={reset} />
+    <div className="flex min-h-screen flex-col bg-ink-50">
+      <Header currentView="pipeline" onNavigate={handleNavigate} onReset={reset} />
+
+      {/* PIPELINE VISUALIZER (LOAD -> CHUNK -> EMBED -> SEARCH) */}
       <StepNav current={step} onSelect={setStep} canVisit={canVisit} />
 
-      {/* Announces stage changes and search results, which are otherwise
-          silent for anyone not watching the screen. */}
       <p aria-live="polite" className="sr-only">
         {hits
           ? `${hits.length} results found for ${query}`
@@ -198,3 +194,4 @@ export default function App() {
     </div>
   );
 }
+

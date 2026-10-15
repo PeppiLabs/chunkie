@@ -1,0 +1,33 @@
+# Chunkie on Render.
+#
+# This describes the password protected staging site, built from the staging
+# branch. Today that site is the Render service "chunkie", configured in the
+# dashboard with these same settings; this file is the reference for them and
+# can be imported as a Blueprint if the service is ever recreated. The public
+# live site (chunkie.peppilabs.net, built from main) runs on Railway from the
+# Dockerfile and Caddyfile next to this file.
+#
+# Secrets never go in this file. SITE_PASSWORD_HASH is entered in the Render
+# dashboard (sync: false). server/__tests__/renderBlueprint.test.ts checks this
+# file on every test run.
+projects:
+  - name: chunkie
+    environments:
+      - name: staging
+        services:
+          # Every page behind the site password, the landing page included:
+          # SITE_PUBLIC_LANDING is deliberately not set here.
+          - type: web
+            name: chunkie-staging
+            runtime: node
+            plan: free
+            # Same region as the current site, so the client sees the same latency.
+            region: singapore
+            branch: staging
+            autoDeployTrigger: commit
+            buildCommand: npm ci && npm run build
+            startCommand: npm start
+            healthCheckPath: /healthz
+            envVars:
+              - key: SITE_PASSWORD_HASH
+                sync: false
