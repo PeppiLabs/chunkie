@@ -115,8 +115,8 @@ npm run dev
 
 The `password` step prints a new site password once. Keep it, because the visualizer asks for it
 (see [The site password](#the-site-password) below). Then open the URL the terminal prints, usually
-<http://localhost:5173>. The landing page opens without the password. "Launch visualizer" opens
-<http://localhost:5173/app/>, which asks for it.
+<http://localhost:5173>. Both the landing page and the visualizer at <http://localhost:5173/app/> ask
+for it, unless you add `SITE_PUBLIC_LANDING=true` to `.env.local` to leave the landing page open.
 
 The first time you reach the Embed step, the browser downloads the embedding model, roughly 23 MB.
 That happens once and your browser caches it, so every later run starts immediately. It needs an

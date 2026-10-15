@@ -48,13 +48,20 @@
 
 	# File names in /assets carry a content hash, so they never change.
 	@assets path /assets/*
-	header @assets Cache-Control "public, max-age=31536000, immutable"
+	header @assets {
+		Cache-Control "public, max-age=31536000, immutable"
+		# Deferred, so a 404 for a missing asset is not cached for a year.
+		defer
+	}
 
 	# Pages are always revalidated, so a deploy shows up at once.
 	@pages path / /index.html /app/ /app/index.html /concepts.html /concepts.js
 	header @pages Cache-Control no-cache
 
-	file_server
+	file_server {
+		# Serve the .gz siblings made at build time; encode handles the rest.
+		precompressed gzip
+	}
 
 	handle_errors {
 		import security_headers
