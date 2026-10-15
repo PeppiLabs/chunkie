@@ -80,39 +80,60 @@ export function LandingPage({ onLaunchVisualizer }: LandingPageProps) {
   return (
     <div className="flex flex-col bg-ink-50">
       {/* Hero Section */}
-      <section className="relative overflow-hidden border-b border-ink-200 bg-white pt-12 pb-20 sm:pt-16 sm:pb-24">
-        {/* Subtle grid pattern background */}
+      {/* Navy hero with the Peppi Labs rounded corner; the dot field and the little map are Chunkie's own. */}
+      <section className="relative overflow-hidden rounded-bl-[56px] bg-brand-900 pt-12 pb-16 sm:rounded-bl-[96px] sm:pt-16 sm:pb-20">
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.03]"
+          className="pointer-events-none absolute inset-0 opacity-[0.16]"
           style={{
-            backgroundImage:
-              'radial-gradient(#0b5ed7 1px, transparent 1px), radial-gradient(#0b5ed7 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
-            backgroundPosition: '0 0, 12px 12px',
+            backgroundImage: 'radial-gradient(#afbbed 1px, transparent 1.2px)',
+            backgroundSize: '26px 26px',
           }}
         />
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 260 200"
+          className="pointer-events-none absolute -top-2 right-[4%] hidden w-[300px] opacity-70 lg:block"
+        >
+          <g stroke="#ff6b5c" strokeWidth="1.4" strokeOpacity="0.7">
+            <line x1="150" y1="96" x2="104" y2="62" />
+            <line x1="150" y1="96" x2="196" y2="70" />
+            <line x1="150" y1="96" x2="124" y2="146" />
+          </g>
+          <g fill="#6f93f5">
+            <circle cx="104" cy="62" r="6" />
+            <circle cx="196" cy="70" r="6" />
+            <circle cx="124" cy="146" r="6" />
+            <circle cx="62" cy="120" r="4" opacity="0.6" />
+            <circle cx="222" cy="140" r="4" opacity="0.6" />
+            <circle cx="84" cy="168" r="3.5" opacity="0.5" />
+            <circle cx="236" cy="30" r="3.5" opacity="0.5" />
+            <circle cx="40" cy="44" r="3" opacity="0.45" />
+          </g>
+          <circle cx="150" cy="96" r="12" fill="#ff6b5c" opacity="0.25" />
+          <circle cx="150" cy="96" r="7" fill="#ff6b5c" />
+        </svg>
 
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mx-auto max-w-3xl text-center">
             {/* Pill badge */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3.5 py-1 text-xs font-medium text-brand-700 shadow-sm">
-              <span className="flex h-2 w-2 rounded-full bg-brand-600 animate-pulse" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold tracking-wide text-white/90">
+              <span className="flex h-2 w-2 rounded-full bg-coral-500 animate-pulse" />
               <span>100% In-Browser RAG Visualizer • Zero Server Dependencies</span>
             </div>
 
-            <h1 className="mt-6 font-display text-4xl sm:text-6xl tracking-tight text-ink-900 leading-[1.08]">
+            <h1 className="mt-6 font-display text-4xl sm:text-6xl tracking-tight text-white leading-[1.08]">
               Understand Retrieval-Augmented Generation{' '}
-              <span className="text-brand-600">from the inside out.</span>
+              <span className="text-coral-500">from the inside out.</span>
             </h1>
 
-            <p className="mt-6 text-lg leading-relaxed text-ink-600 sm:text-xl">
-              Most explanations of RAG are static diagrams with black boxes. <strong>Chunkie</strong>{' '}
+            <p className="mt-6 text-lg leading-relaxed text-white/75 sm:text-xl">
+              Most explanations of RAG are static diagrams with black boxes. <strong className="text-white">Chunkie</strong>{' '}
               is the real pipeline running right in front of you. Cut documents into chunks, compute
               real 384-dimensional embeddings, and explore semantic similarity live in your browser tab.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Button size="lg" onClick={onLaunchVisualizer} className="shadow-md">
+              <Button size="lg" variant="cta" onClick={onLaunchVisualizer}>
                 <span>Launch Visualizer</span>
                 <svg
                   width="18"
@@ -131,14 +152,14 @@ export function LandingPage({ onLaunchVisualizer }: LandingPageProps) {
 
               <a
                 href="/concepts.html"
-                className="inline-flex h-12 items-center justify-center rounded-xl px-5 text-sm font-medium text-ink-600 transition hover:bg-ink-100 hover:text-ink-900"
+                className="inline-flex h-12 items-center justify-center rounded-full border border-white/25 px-6 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 Explore Concepts Guide
               </a>
             </div>
 
             {/* Micro value props */}
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-xs text-ink-500">
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-xs text-white/65">
               <span className="inline-flex items-center gap-1.5">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -162,7 +183,7 @@ export function LandingPage({ onLaunchVisualizer }: LandingPageProps) {
           </div>
 
           {/* Interactive Semantic vs Keyword Demonstration */}
-          <div className="mt-14 overflow-hidden rounded-2xl border border-ink-200 bg-ink-50/60 p-4 shadow-xl sm:p-6 lg:p-8">
+          <div className="mt-14 overflow-hidden rounded-2xl border border-brand-200 bg-white p-4 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.45)] sm:p-6 lg:p-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-ink-200/80 pb-5">
               <div>
                 <span className="text-xs font-semibold uppercase tracking-wider text-brand-600">
@@ -300,7 +321,7 @@ export function LandingPage({ onLaunchVisualizer }: LandingPageProps) {
             <span className="text-xs font-semibold uppercase tracking-wider text-brand-600">
               Pipeline Transparency
             </span>
-            <h2 className="mt-2 font-display text-3xl sm:text-4xl text-ink-900 tracking-tight">
+            <h2 className="mt-2 font-display text-3xl sm:text-4xl text-brand-900 tracking-tight">
               What does Chunkie do?
             </h2>
             <p className="mt-3 text-base text-ink-600 leading-relaxed">
@@ -380,7 +401,7 @@ export function LandingPage({ onLaunchVisualizer }: LandingPageProps) {
             <span className="text-xs font-semibold uppercase tracking-wider text-brand-600">
               The Architecture
             </span>
-            <h2 className="mt-2 font-display text-3xl sm:text-4xl text-ink-900 tracking-tight">
+            <h2 className="mt-2 font-display text-3xl sm:text-4xl text-brand-900 tracking-tight">
               Why build an in-browser visualizer?
             </h2>
             <p className="mt-3 text-base text-ink-600 leading-relaxed">
@@ -448,7 +469,7 @@ export function LandingPage({ onLaunchVisualizer }: LandingPageProps) {
             <span className="text-xs font-semibold uppercase tracking-wider text-brand-600">
               Engineered For Depth
             </span>
-            <h2 className="mt-2 font-display text-3xl sm:text-4xl text-ink-900 tracking-tight">
+            <h2 className="mt-2 font-display text-3xl sm:text-4xl text-brand-900 tracking-tight">
               Key Features &amp; Capabilities
             </h2>
           </div>
