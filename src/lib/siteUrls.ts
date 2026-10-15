@@ -11,6 +11,12 @@ export const LANDING_URL = '/';
 /** The visualizer, behind the password. */
 export const APP_URL = '/app/';
 
+/** Peppi Labs, who make Chunkie. The logo links here. */
+export const PEPPI_LABS_URL = 'https://peppilabs.net';
+
+/** The other projects Peppi Labs has shared. */
+export const PEPPI_LABS_PROJECTS_URL = 'https://peppilabs.net/projects';
+
 /**
  * Hashes that opened part of the app when it lived at the root. Old bookmarks
  * and shared links now land on the landing page, which sends them on.
