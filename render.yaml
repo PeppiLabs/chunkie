@@ -1,8 +1,11 @@
 # Chunkie on Render.
 #
-# This defines the password protected staging site, built from the staging
-# branch. The public live site (chunkie.peppilabs.net, built from main) is set
-# up to run on Railway from the Dockerfile and Caddyfile next to this file.
+# This describes the password protected staging site, built from the staging
+# branch. Today that site is the Render service "chunkie", configured in the
+# dashboard with these same settings; this file is the reference for them and
+# can be imported as a Blueprint if the service is ever recreated. The public
+# live site (chunkie.peppilabs.net, built from main) runs on Railway from the
+# Dockerfile and Caddyfile next to this file.
 #
 # Secrets never go in this file. SITE_PASSWORD_HASH is entered in the Render
 # dashboard (sync: false). server/__tests__/renderBlueprint.test.ts checks this
