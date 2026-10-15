@@ -75,7 +75,7 @@ export function StepNav({ current, onSelect, canVisit }: StepNavProps) {
                 // since it tells the visitor what is coming next.
                 className={`flex items-baseline gap-2 border-b-2 px-3 py-3.5 text-left transition-colors sm:px-4 ${
                   active
-                    ? 'border-brand-600 font-medium text-ink-900'
+                    ? 'border-coral-500 font-medium text-ink-900'
                     : enabled
                       ? 'cursor-pointer border-transparent text-ink-600 hover:text-ink-900'
                       : 'cursor-not-allowed border-transparent text-ink-500'

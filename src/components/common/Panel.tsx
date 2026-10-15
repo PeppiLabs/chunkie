@@ -12,8 +12,8 @@ interface PanelProps {
 }
 
 const TONES: Record<'plain' | 'result', string> = {
-  plain: 'border-ink-200 bg-white',
-  result: 'border-brand-200/70 bg-brand-50/40',
+  plain: 'border-brand-100 bg-white',
+  result: 'border-brand-200/80 bg-brand-50/60',
 };
 
 /** The standard surface everything sits on. */
@@ -22,7 +22,7 @@ export function Panel({ children, tone = 'plain', className = '' }: PanelProps) 
     <section
       // A low, wide shadow rather than a tight one. It reads as the surface
       // sitting on the page rather than floating above it.
-      className={`rounded-2xl border shadow-[0_1px_2px_rgba(20,19,17,0.04),0_8px_24px_-12px_rgba(20,19,17,0.10)] ${TONES[tone]} ${className}`}
+      className={`rounded-2xl border shadow-[0_1px_2px_rgba(0,39,111,0.04),0_12px_30px_-16px_rgba(11,94,215,0.22)] ${TONES[tone]} ${className}`}
     >
       {children}
     </section>
@@ -47,7 +47,7 @@ export function PanelHeader({ title, hint, aside, tone = 'plain' }: PanelHeaderP
       }`}
     >
       <div className="min-w-0">
-        <h2 className="text-[0.9375rem] font-semibold tracking-[-0.01em] text-ink-900">{title}</h2>
+        <h2 className="text-[0.9375rem] font-bold tracking-[-0.01em] text-ink-900">{title}</h2>
         {hint && <p className="mt-1 text-[0.8125rem] leading-relaxed text-ink-500">{hint}</p>}
       </div>
       {aside && <div className="flex shrink-0 items-center gap-2">{aside}</div>}
