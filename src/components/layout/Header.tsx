@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Logo } from '../brand/Logo';
 import { Button } from '../common/Button';
-import { PEPPI_LABS_URL } from '../../lib/siteUrls';
+import { LANDING_URL, PEPPI_LABS_URL } from '../../lib/siteUrls';
 
 export type AppView = 'landing' | 'pipeline';
 
@@ -21,14 +21,24 @@ export function Header({ currentView, onNavigate, onReset }: HeaderProps) {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         {/* Brand & Main Nav */}
         <div className="flex items-center gap-6">
-          {/* The Peppi Labs logo goes to peppilabs.net; "What is Chunkie?" is the way home. */}
-          <a
-            href={PEPPI_LABS_URL}
-            className="flex items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-            aria-label="Peppi Labs home page"
-          >
-            <Logo size={28} />
-          </a>
+          {/* The Peppi Labs logo goes to peppilabs.net; "Chunkie" beside it is this site's home page. */}
+          <div className="flex items-center gap-3">
+            <a
+              href={PEPPI_LABS_URL}
+              className="flex items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+              aria-label="Peppi Labs home page"
+            >
+              <Logo size={28} />
+            </a>
+            <span aria-hidden="true" className="h-5 w-px bg-ink-200" />
+            <a
+              href={LANDING_URL}
+              aria-current={currentView === 'landing' ? 'page' : undefined}
+              className="rounded-lg text-base font-semibold tracking-tight text-ink-900 transition hover:text-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            >
+              Chunkie
+            </a>
+          </div>
 
           <nav className="hidden md:flex items-center gap-1">
             <button
