@@ -186,8 +186,14 @@ other way, it is not protected, so use whatever access control that host provide
 ### About the cross origin headers
 
 `vite.config.ts` sets `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` for both the
-dev server and the preview server. They make the page cross origin isolated, which is what lets the
-WASM runtime use its faster multi threaded backend.
+dev server and the preview server (see `server/crossOriginIsolation.ts`), and the `Caddyfile` does
+the same on the live site. They make the page cross origin isolated, which is what lets the WASM
+runtime use its faster multi threaded backend.
+
+The landing page gets only the first of the two. It runs no model, and it embeds the demo video from
+YouTube, whose player the browser would refuse to show under `Cross-Origin-Embedder-Policy`. The
+player loads only when someone presses play, from `www.youtube-nocookie.com`, the one place the
+content security policy allows frames from.
 
 If you ever serve the built output some other way, without those two headers the model still runs,
 just on a slower single threaded path.

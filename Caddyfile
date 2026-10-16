@@ -11,9 +11,9 @@
 (security_headers) {
 	header {
 		# Cross origin isolation lets the embedding model use its faster
-		# multi threaded runtime. Same values the dev and preview servers send.
+		# multi threaded runtime. The embedder policy is set below, on every
+		# page but the landing page. Same values the dev and preview servers send.
 		Cross-Origin-Opener-Policy same-origin
-		Cross-Origin-Embedder-Policy require-corp
 		# HTTPS only. No includeSubDomains, so other peppilabs.net sites are untouched.
 		Strict-Transport-Security max-age=31536000
 		X-Content-Type-Options nosniff
@@ -21,10 +21,11 @@
 		Referrer-Policy strict-origin-when-cross-origin
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
 		# Scripts, workers and styles only from this site. Network requests only
-		# to this site and to Hugging Face, which hosts the model.
+		# to this site and to Hugging Face, which hosts the model. Frames only
+		# from YouTube's privacy enhanced player, for the demo video.
 		# 'wasm-unsafe-eval' lets the WASM runtime compile; it does not allow
 		# eval() of JavaScript.
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://huggingface.co https://*.huggingface.co https://*.hf.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://huggingface.co https://*.huggingface.co https://*.hf.co; frame-src https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
 		-Server
 	}
 }
@@ -45,6 +46,12 @@
 	respond @hidden 404
 
 	import security_headers
+
+	# Every page but the landing page is cross origin isolated. The landing page
+	# runs no model, and it embeds the demo video from YouTube, whose player the
+	# browser would block under this header (see server/crossOriginIsolation.ts).
+	@isolated not path / /index.html
+	header @isolated Cross-Origin-Embedder-Policy require-corp
 
 	# File names in /assets carry a content hash, so they never change.
 	@assets path /assets/*
