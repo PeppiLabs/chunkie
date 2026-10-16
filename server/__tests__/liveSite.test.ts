@@ -7,6 +7,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { LANDING_PAGES } from '../crossOriginIsolation';
 
 const ROOT = resolve(__dirname, '../..');
 
@@ -122,7 +123,6 @@ describe('the live server', () => {
 
   it.each([
     ['Cross-Origin-Opener-Policy', 'same-origin'],
-    ['Cross-Origin-Embedder-Policy', 'require-corp'],
     ['Strict-Transport-Security', 'max-age=31536000'],
     ['X-Content-Type-Options', 'nosniff'],
     ['X-Frame-Options', 'DENY'],
@@ -130,6 +130,13 @@ describe('the live server', () => {
     ['Permissions-Policy', 'camera=(), microphone=(), geolocation=()'],
   ])('sends %s: %s on every response', (name, value) => {
     expect(header(name)).toBe(value);
+  });
+
+  it('isolates every page but the landing page, as the dev and preview servers do', () => {
+    // On every response, the embedder policy would block the landing page's YouTube player.
+    expect(header('Cross-Origin-Embedder-Policy')).toBeUndefined();
+    expect(caddyfile).toContain(`\n\t@isolated not path ${LANDING_PAGES.join(' ')}\n`);
+    expect(caddyfile).toMatch(/^\theader @isolated Cross-Origin-Embedder-Policy require-corp$/m);
   });
 
   it('sets the security headers on normal responses', () => {
@@ -156,6 +163,8 @@ describe('the live server', () => {
     expect(csp.get('frame-ancestors')).toEqual(["'none'"]);
     expect(csp.get('object-src')).toEqual(["'none'"]);
     expect(csp.get('base-uri')).toEqual(["'self'"]);
+    // Only YouTube's privacy enhanced player, for the landing page's demo video.
+    expect(csp.get('frame-src')).toEqual(['https://www.youtube-nocookie.com']);
     expect(csp.get('script-src')).not.toContain("'unsafe-inline'");
     for (const [name, sources] of csp) {
       expect(sources, name).not.toContain("'unsafe-eval'");

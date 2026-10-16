@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from '../common/Button';
+import { DemoVideo } from './DemoVideo';
 
 interface LandingPageProps {
   onLaunchVisualizer: () => void;
@@ -310,6 +311,23 @@ export function LandingPage({ onLaunchVisualizer }: LandingPageProps) {
               <span className="shrink-0 font-semibold text-brand-600">Why this matters:</span>
               <p className="leading-relaxed">{activeScenario.explanation}</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* The demo video */}
+      <section className="border-b border-ink-200 py-16 sm:py-20">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6">
+          <div className="text-center">
+            <span className="text-xs font-semibold uppercase tracking-wider text-brand-600">
+              Watch the demo
+            </span>
+            <h2 className="mt-2 font-display text-3xl sm:text-4xl text-brand-900 tracking-tight">
+              See how RAG works, step by step
+            </h2>
+          </div>
+          <div className="mt-8">
+            <DemoVideo />
           </div>
         </div>
       </section>

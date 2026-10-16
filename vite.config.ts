@@ -2,24 +2,10 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { crossOriginIsolation } from './server/crossOriginIsolation.ts';
 import { passwordGate } from './server/passwordGate.ts';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
-
-/**
- * Headers that make the page cross origin isolated.
- *
- * The WASM runtime uses its faster multi threaded backend only when the page
- * is cross origin isolated, and that needs these two headers. Without them the
- * model still runs, just on a slower single threaded path.
- *
- * They are set for both `dev` and `preview` so the app behaves the same
- * whichever one you use.
- */
-const CROSS_ORIGIN_ISOLATION = {
-  'Cross-Origin-Opener-Policy': 'same-origin',
-  'Cross-Origin-Embedder-Policy': 'require-corp',
-};
 
 // https://vite.dev/config/
 export default defineConfig(({ mode, command }) => {
@@ -42,16 +28,15 @@ export default defineConfig(({ mode, command }) => {
   // the password (app/index.html). 'mpa' turns off the fallback that answers
   // unknown paths with index.html, so a wrong URL is a 404, not the landing page.
   appType: 'mpa',
-  plugins: [...(serving ? [passwordGate(env)] : []), react()],
+  // Cross origin isolation for the visualizer (see server/crossOriginIsolation.ts).
+  plugins: [crossOriginIsolation(), ...(serving ? [passwordGate(env)] : []), react()],
   server: {
-    headers: CROSS_ORIGIN_ISOLATION,
     // The app makes no cross origin requests to its own server, and Vite's
     // CORS middleware runs before the password gate, answering OPTIONS itself
     // and letting other local sites read files the gate serves. So it is off.
     cors: false,
   },
   preview: {
-    headers: CROSS_ORIGIN_ISOLATION,
     // Off for the same reason as on the dev server.
     cors: false,
     ...(onRender && {
