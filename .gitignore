@@ -15,7 +15,7 @@ dist-ssr
 server/.cache/
 server/data/processed/
 
-# Planning notes and agent scratch written on one machine. They hold local paths
+# Planning notes and local scratch written on one machine. They hold local paths
 # and are never part of the repository.
 docs/superpowers/
 .superpowers/
@@ -57,5 +57,5 @@ Thumbs.db
 /playwright-report
 /test-results
 
-# Local Render API key for Claude. Never committed.
+# Local Render API key. Never committed.
 .renderMCP

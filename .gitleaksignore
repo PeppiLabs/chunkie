@@ -1,9 +1,1 @@
 # Findings gitleaks may skip, one fingerprint per line (commit:file:rule:line).
-#
-# These three are the same string: a throwaway password for a local test
-# server, typed into curl commands inside planning notes that were committed
-# once in d90cbb1 and untracked again in 8e1191c. It never protected anything
-# and is not a key. The scan covers all history, so the lines stay listed here.
-d90cbb12b81bd0ff69fcf23061a1dd555d093874:docs/superpowers/plans/2026-10-14-render-live-and-staging.md:generic-api-key:612
-d90cbb12b81bd0ff69fcf23061a1dd555d093874:docs/superpowers/plans/2026-10-14-public-landing-page.md:generic-api-key:1322
-d90cbb12b81bd0ff69fcf23061a1dd555d093874:docs/superpowers/plans/2026-10-14-public-landing-page.md:generic-api-key:1351
